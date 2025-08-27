@@ -27,7 +27,7 @@ This project focuses on building a **free-to-deploy web application** with moder
 
 ### System Flow
 ```
-Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (Tesseract) → NLP Structuring (Regex + HuggingFace API) → AI Reasoning (Cohere API) → Knowledge Base (USDA + OpenFoodFacts) → Supabase DB → Frontend Results
+Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (HF TrOCR/Donut) → NLP Structuring (Regex + optional DocVQA) → AI Reasoning (Cohere API) → Knowledge Base (USDA + OpenFoodFacts) → Supabase DB → Frontend Results
 ```
 
 ---
@@ -43,8 +43,7 @@ Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (Tesseract) �
 - **Deta Space (Free)** → Backend hosting.
 
 ### OCR (Label Extraction)
-- **Tesseract OCR** (preferred, lightweight).
-- Optional: **EasyOCR** (for harder fonts).
+- **Hugging Face TrOCR** (default) or **Donut** (end-to-end). Toggle via env `OCR_ENGINE`.
 
 ### NLP (Structuring Data)
 - **Regex & heuristics** → For nutrients/values.
@@ -88,7 +87,7 @@ veritas/
 │
 ├── backend/                 # FastAPI backend
 │   ├── main.py               # FastAPI entrypoint
-│   ├── ocr.py                # OCR functions (Tesseract)
+│   ├── ocr_pipeline.py       # Unified OCR (TrOCR/Donut via HF)
 │   ├── parser.py             # Regex + NLP structuring
 │   ├── analyzer.py           # Cohere + API checks
 │   ├── requirements.txt
@@ -112,8 +111,8 @@ veritas/
 
 ### Step 2: Setup Backend
 - Initialize FastAPI app.
-- Create `/upload` endpoint → accepts image.
-- Add OCR (Tesseract) → extract raw text.
+- Create `/analyze` endpoint → accepts image.
+- Add OCR (TrOCR or Donut via Hugging Face Inference) → extract text / JSON.
 
 ### Step 3: Data Structuring
 - Parse nutrients/ingredients using regex.
