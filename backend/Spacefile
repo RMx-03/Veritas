@@ -1,0 +1,41 @@
+# Deta Space configuration
+v: 0
+micros:
+  - name: veritas-api
+    src: .
+    engine: python3.9
+    primary: true
+    run: uvicorn main:app
+    dev: uvicorn main:app --reload
+    presets:
+      env:
+        - name: COHERE_API_KEY
+          description: "Cohere API key for AI analysis"
+          default: ""
+        - name: HUGGINGFACE_API_KEY  
+          description: "HuggingFace API key for OCR (TrOCR/Donut)"
+          default: ""
+        - name: OCR_ENGINE
+          description: "OCR engine to use: trocr or donut"
+          default: "trocr"
+        - name: HF_TROCR_MODEL
+          description: "Hugging Face TrOCR model id"
+          default: "microsoft/trocr-large-printed"
+        - name: HF_DONUT_MODEL
+          description: "Hugging Face Donut model id"
+          default: "naver-clova-ix/donut-base-finetuned-docvqa"
+        - name: USE_LAYOUT_REFINER
+          description: "Use optional LayoutLM DocVQA refinement (true/false)"
+          default: "false"
+        - name: HF_DOCVQA_MODEL
+          description: "HF DocVQA/LayoutLM model id"
+          default: "impira/layoutlm-document-qa"
+        - name: SUPABASE_URL
+          description: "Supabase project URL"
+          default: ""
+        - name: SUPABASE_ANON_KEY
+          description: "Supabase anonymous key"
+          default: ""
+        - name: USDA_API_KEY
+          description: "USDA API key (optional)"
+          default: ""
