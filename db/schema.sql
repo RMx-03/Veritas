@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS system_statistics (
     stat_date DATE NOT NULL,
     total_analyses INTEGER DEFAULT 0,
     average_score DECIMAL(5,2) DEFAULT 0,
-    api_calls_cohere INTEGER DEFAULT 0,
+    api_calls_openrouter INTEGER DEFAULT 0,
     api_calls_usda INTEGER DEFAULT 0,
     api_calls_openfoodfacts INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

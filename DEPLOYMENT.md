@@ -64,7 +64,11 @@ deta new --python veritas-api
 **3. Configure Environment Variables**
 ```bash
 # Set environment variables in Deta
-deta update -e COHERE_API_KEY="your_key_here"
+deta update -e OPENROUTER_API_KEY="your_openrouter_key"
+deta update -e OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
+deta update -e OPENROUTER_MODEL="deepseek/deepseek-r1"
+deta update -e OPENROUTER_SITE_URL="https://your-backend.deta.dev"
+deta update -e OPENROUTER_APP_NAME="Veritas API"
 deta update -e HUGGINGFACE_API_KEY="your_hf_key_here" 
 deta update -e OCR_ENGINE="trocr"   # or donut
 deta update -e HF_TROCR_MODEL="microsoft/trocr-large-printed"
@@ -127,7 +131,11 @@ VITE_API_URL=https://your-backend.deta.dev
 
 **Backend (Deta Environment):**
 ```env
-COHERE_API_KEY=your_cohere_key
+OPENROUTER_API_KEY=your_openrouter_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=deepseek/deepseek-r1
+OPENROUTER_SITE_URL=https://your-backend.deta.dev
+OPENROUTER_APP_NAME=Veritas API
 HUGGINGFACE_API_KEY=your_hf_key
 OCR_ENGINE=trocr
 HF_TROCR_MODEL=microsoft/trocr-large-printed
@@ -178,7 +186,7 @@ deta logs
 
 **2. Performance Monitoring**
 - Monitor API response times
-- Track Cohere API token usage
+- Track OpenRouter usage (model tokens/costs)
 - Monitor Supabase database usage
 
 **3. Regular Updates**
@@ -198,13 +206,13 @@ deta deploy    # Backend
 - Vercel: 100GB bandwidth/month
 - Deta: No strict limits on free tier
 - Supabase: 500MB storage, 500k API calls/month
-- Cohere: 100k tokens/month
+- OpenRouter: usage-based (depends on model)
 
 **Upgrade Paths:**
 - Vercel Pro: $20/month for better performance
 - Deta Pro: Custom pricing for dedicated resources
 - Supabase Pro: $25/month for 8GB storage
-- Cohere Production: Usage-based pricing
+- OpenRouter: Usage-based pricing
 
 ### Backup & Recovery
 

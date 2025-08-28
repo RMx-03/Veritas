@@ -51,8 +51,16 @@ cp .env.example .env
 Required environment variables:
 ```env
 # AI Services (Required)
-COHERE_API_KEY=your_cohere_api_key_here
 HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+
+# OpenRouter (LLM via Chat Completions)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+# Pick a model from https://openrouter.ai/models (examples below)
+OPENROUTER_MODEL=deepseek/deepseek-r1
+# Optional: used for HTTP Referer and X-Title headers (best practice)
+OPENROUTER_SITE_URL=http://localhost:8000
+OPENROUTER_APP_NAME=Veritas Local
 
 # Database (Required)
 SUPABASE_URL=your_supabase_project_url
@@ -94,10 +102,9 @@ VITE_API_URL=http://localhost:8000
 
 ### API Keys Setup
 
-**1. Cohere API (Required)**
-- Visit [cohere.ai](https://cohere.ai)
-- Sign up for free account
-- Generate API key (100k tokens/month free)
+**1. OpenRouter API (Required)**
+- Visit [openrouter.ai](https://openrouter.ai)
+- Sign up and generate an API key
 - Add to backend `.env` file
 
 **2. HuggingFace API (Optional)**
@@ -186,7 +193,7 @@ curl http://localhost:8000/
 - Implement caching for repeated analyses
 
 **2. API Rate Limits:**
-- Monitor Cohere token usage
+- Monitor OpenRouter usage (model tokens/costs)
 - Implement request queuing
 - Cache API responses when possible
 

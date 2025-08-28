@@ -35,7 +35,7 @@ def test_analyze_endpoint():
     """Test the analyze endpoint with a sample image"""
     print("\n⚠️  Analyze endpoint test requires:")
     print("   1. A sample food label image file")
-    print("   2. Backend .env configured (HUGGINGFACE_API_KEY, OCR_ENGINE=trocr|donut; Cohere, Supabase)")
+    print("   2. Backend .env configured (HUGGINGFACE_API_KEY, OCR_ENGINE=trocr|donut; OpenRouter, Supabase)")
     print("   3. Backend server running")
     
     # Create a dummy test without actual file upload

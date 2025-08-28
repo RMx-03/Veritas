@@ -1,19 +1,35 @@
-import cohere
-import requests
 import json
 import os
 from typing import Dict, List, Any, Optional
 from dotenv import load_dotenv
 import asyncio
+from openai import AsyncOpenAI
 
 load_dotenv()
 
 # API Configuration
-COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 USDA_API_KEY = os.getenv("USDA_API_KEY")  # Optional, USDA has public endpoints
 
-# Initialize Cohere client
-co = cohere.Client(COHERE_API_KEY) if COHERE_API_KEY else None
+# OpenRouter configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1")
+OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL")
+OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME")
+
+# Initialize OpenRouter client
+or_client: Optional[AsyncOpenAI] = None
+if OPENROUTER_API_KEY:
+    default_headers = {}
+    if OPENROUTER_SITE_URL:
+        default_headers["HTTP-Referer"] = OPENROUTER_SITE_URL
+    if OPENROUTER_APP_NAME:
+        default_headers["X-Title"] = OPENROUTER_APP_NAME
+    or_client = AsyncOpenAI(
+        base_url=OPENROUTER_BASE_URL,
+        api_key=OPENROUTER_API_KEY,
+        default_headers=default_headers or None
+    )
 
 # Knowledge base URLs
 USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1"
@@ -161,8 +177,8 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
                 "explanation": f"Misleading: Contains {fiber}g fiber, which is below FDA criteria for 'high fiber' (≥5g per serving)."
             })
     
-    # Use AI for complex claims if Cohere is available
-    elif co:
+    # Use AI for complex claims if OpenRouter is available
+    elif or_client:
         try:
             ai_verification = await get_ai_claim_verification(claim, nutrition_facts)
             verification.update(ai_verification)
@@ -173,60 +189,56 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
 
 async def get_ai_claim_verification(claim: str, nutrition_facts: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Use Cohere AI to verify complex health claims
+    Use OpenRouter (Chat Completions) to verify complex health claims
     """
-    if not co:
+    if not or_client:
         return {"status": "unknown", "explanation": "AI verification not available"}
-    
+
     prompt = f"""
     Analyze this health claim against the nutrition facts:
-    
+
     Claim: "{claim}"
     Nutrition Facts: {json.dumps(nutrition_facts, indent=2)}
-    
+
     Based on FDA regulations and nutritional science, is this claim:
     1. Verified (accurate and supported by data)
-    2. Misleading (technically true but potentially deceptive)  
+    2. Misleading (technically true but potentially deceptive)
     3. False (contradicted by the data)
-    
+
     Provide a brief explanation with scientific reasoning.
     """
-    
+
     try:
-        import socket
-        # Test DNS resolution first
-        socket.gethostbyname('api.cohere.ai')
-        
-        response = co.generate(
-            model='command',
-            prompt=prompt,
+        response = await or_client.chat.completions.create(
+            model=OPENROUTER_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a nutrition scientist who verifies product claims against nutrition facts and FDA guidelines."},
+                {"role": "user", "content": prompt.strip()},
+            ],
             max_tokens=200,
-            temperature=0.3
+            temperature=0.3,
         )
-        ai_response = response.generations[0].text.strip()
-        
+        ai_response = response.choices[0].message.content.strip()
+
         # Parse AI response to determine status
-        if "verified" in ai_response.lower() or "accurate" in ai_response.lower():
+        lower = ai_response.lower()
+        if "verified" in lower or "accurate" in lower:
             status = "verified"
-        elif "misleading" in ai_response.lower() or "deceptive" in ai_response.lower():
+        elif "misleading" in lower or "deceptive" in lower:
             status = "misleading"
-        elif "false" in ai_response.lower() or "contradicted" in ai_response.lower():
+        elif "false" in lower or "contradicted" in lower:
             status = "false"
         else:
             status = "unknown"
-            
+
         return {
             "status": status,
             "explanation": ai_response,
-            "source": "AI analysis (Cohere)"
+            "source": "AI analysis (OpenRouter)",
         }
-        
-    except socket.gaierror as dns_error:
-        print(f"[ANALYZER] DNS resolution failed for api.cohere.ai: {dns_error}")
-        print("[ANALYZER] Check internet connection or DNS settings")
-        return {"status": "unknown", "explanation": "Network connectivity issue"}
+
     except Exception as e:
-        print(f"[ANALYZER] Cohere API error: {e}")
+        print(f"[ANALYZER] OpenRouter error: {e}")
         return {"status": "unknown", "explanation": "AI analysis failed"}
 
 async def analyze_ingredients(ingredients: List[str]) -> Dict[str, Any]:
@@ -398,7 +410,7 @@ async def generate_health_recommendation(structured_data: Dict[str, Any], raw_te
         summary = "This product has several nutritional red flags and should be consumed sparingly."
     
     # Use AI for more sophisticated analysis if available
-    if co and len(raw_text) > 50:
+    if or_client and len(raw_text) > 50:
         try:
             ai_recommendation = await get_ai_health_recommendation(structured_data, raw_text)
             if ai_recommendation:
@@ -416,51 +428,54 @@ async def generate_health_recommendation(structured_data: Dict[str, Any], raw_te
 
 async def get_ai_health_recommendation(structured_data: Dict[str, Any], raw_text: str) -> Optional[Dict[str, Any]]:
     """
-    Generate AI-powered health recommendation
+    Generate AI-powered health recommendation via OpenRouter
     """
-    if not co:
+    if not or_client:
         return None
-    
+
     prompt = f"""
     As a nutrition scientist, analyze this food product and provide a health recommendation:
-    
+
     Nutrition Facts: {json.dumps(structured_data.get('nutrition_facts', {}), indent=2)}
     Ingredients: {', '.join(structured_data.get('ingredients', []))}
-    
+
     Provide:
     1. Overall recommendation: SAFE (good choice), MODERATE (okay in moderation), or AVOID (nutritional concerns)
     2. 2-3 sentence summary explaining your reasoning
     3. Top 3 specific health concerns or benefits
     4. 2 practical tips for consumers
-    
+
     Base your analysis on current nutritional science and FDA guidelines.
     """
-    
+
     try:
-        response = co.generate(
-            model='command',
-            prompt=prompt,
+        response = await or_client.chat.completions.create(
+            model=OPENROUTER_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a nutrition scientist providing concise, evidence-based recommendations."},
+                {"role": "user", "content": prompt.strip()},
+            ],
             max_tokens=300,
-            temperature=0.2
+            temperature=0.2,
         )
-        
-        ai_text = response.generations[0].text.strip()
-        
+
+        ai_text = response.choices[0].message.content.strip()
+
         # Parse AI response (simplified parsing)
         level = "moderate"  # default
         if "SAFE" in ai_text:
             level = "safe"
         elif "AVOID" in ai_text:
             level = "avoid"
-        
+
         return {
             "level": level,
             "summary": ai_text[:200],  # First part as summary
             "reasons": ["AI-generated comprehensive analysis"],
             "tips": ["Follow AI recommendations above"],
-            "aiAnalysis": ai_text
+            "aiAnalysis": ai_text,
         }
-    
+
     except Exception as e:
         print(f"AI health recommendation error: {e}")
         return None

@@ -9,9 +9,21 @@ micros:
     dev: uvicorn main:app --reload
     presets:
       env:
-        - name: COHERE_API_KEY
-          description: "Cohere API key for AI analysis"
+        - name: OPENROUTER_API_KEY
+          description: "OpenRouter API key for AI analysis"
           default: ""
+        - name: OPENROUTER_BASE_URL
+          description: "OpenRouter base URL"
+          default: "https://openrouter.ai/api/v1"
+        - name: OPENROUTER_MODEL
+          description: "OpenRouter model id (e.g., deepseek/deepseek-r1)"
+          default: "deepseek/deepseek-r1"
+        - name: OPENROUTER_SITE_URL
+          description: "Site URL sent as HTTP-Referer header to OpenRouter"
+          default: ""
+        - name: OPENROUTER_APP_NAME
+          description: "App name sent as X-Title header to OpenRouter"
+          default: "Veritas API"
         - name: HUGGINGFACE_API_KEY  
           description: "HuggingFace API key for OCR (TrOCR/Donut)"
           default: ""

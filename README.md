@@ -1,19 +1,19 @@
 # Veritas - Pocket Nutrition Scientist
 
-🔬 **AI-powered nutrition analysis for smarter food choices**
+ **AI-powered nutrition analysis for smarter food choices**
 
 Veritas analyzes food labels through image upload, providing instant AI-powered nutrition insights, claim verification, and health recommendations.
 
-## 🚀 Features
+## Features
 
-- **📷 OCR Label Reading** - Extract text from food label images using Hugging Face TrOCR or Donut (toggle)
-- **🧠 AI Analysis** - Verify health claims using Cohere AI
-- **📊 Nutrition Insights** - Comprehensive nutritional breakdown with charts
-- **⚠️ Ingredient Warnings** - Identify harmful ingredients and allergens
-- **✅ Health Recommendations** - Get personalized safety ratings
-- **📈 Knowledge Base Integration** - Cross-reference with USDA & OpenFoodFacts
+- ** OCR Label Reading** - Extract text from food label images using Hugging Face TrOCR or Donut (toggle)
+- ** AI Analysis** - Verify health claims using OpenRouter (DeepSeek R1)
+- ** Nutrition Insights** - Comprehensive nutritional breakdown with charts
+- ** Ingredient Warnings** - Identify harmful ingredients and allergens
+- ** Health Recommendations** - Get personalized safety ratings
+- ** Knowledge Base Integration** - Cross-reference with USDA & OpenFoodFacts
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Frontend:**
 - React 18 + Vite
@@ -24,7 +24,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 **Backend:**
 - FastAPI (Python)
 - Hugging Face Inference API (TrOCR/Donut) for OCR
-- Cohere API for AI reasoning
+- OpenRouter (DeepSeek R1) for AI reasoning
 - Optional DocVQA (LayoutLM family) for layout-aware refinement
 
 **Database & APIs:**
@@ -33,22 +33,17 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 - OpenFoodFacts API
 - HuggingFace Inference API
 
-**Deployment:**
-- Frontend: Vercel (free tier)
-- Backend: Deta Space (free tier)
-- Database: Supabase (free tier)
-
-## 📋 Prerequisites
+## Prerequisites
 
 1. **Node.js** (v18+)
 2. **Python** (3.8+)
 3. **Hugging Face** account and API key (for OCR via HF Inference)
 4. API keys for:
-   - Cohere (free tier: 100k tokens/month)
+   - OpenRouter (uses your chosen model via OpenRouter)
    - HuggingFace (free tier: 30k tokens/month)
    - Supabase project
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone & Setup
 ```bash
@@ -113,12 +108,11 @@ npm run dev
 
 Visit: `http://localhost:3000`
 
-## 🔑 API Keys Setup
+## API Keys Setup
 
-### Required (Free Tier):
-1. **Cohere API** - [Get free API key](https://cohere.ai/)
-   - 100k tokens/month free
-   - Used for AI claim verification
+### Required:
+1. **OpenRouter API** - [Get API key](https://openrouter.ai/)
+   - Used for AI claim verification and recommendations (DeepSeek R1)
 
 2. **Supabase** - [Create free project](https://supabase.com/)
    - 500MB database, 500k API calls/month
@@ -126,14 +120,14 @@ Visit: `http://localhost:3000`
 
 ### Optional:
 3. **HuggingFace** - [Get free API key](https://huggingface.co/)
-   - 30k tokens/month free
+   - 30k tokens free for Inference API (varies)
    - Used for enhanced NLP processing
 
 4. **USDA API** - [Get free API key](https://fdc.nal.usda.gov/api-guide.html)
    - Unlimited free requests
    - Public endpoints available without key
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 veritas/
@@ -156,23 +150,23 @@ veritas/
 └── README.md
 ```
 
-## 🔄 API Endpoints
+## API Endpoints
 
 - `POST /analyze` - Analyze food label image
 - `GET /history` - Get analysis history
 - `GET /health` - Health check
 - `POST /save` - Save analysis result
 
-## 🧪 Testing
+## Testing
 
 Upload test images of food labels to verify:
-- ✅ OCR text extraction works
-- ✅ Nutrition facts parsing
-- ✅ AI claim verification
-- ✅ Ingredient analysis
-- ✅ Health recommendations
+- OCR text extraction works
+- Nutrition facts parsing
+- AI claim verification
+- Ingredient analysis
+- Health recommendations
 
-## 🚀 Deployment
+## Deployment
 
 ### Frontend (Vercel)
 ```bash
@@ -191,24 +185,23 @@ deta new --python
 ### Database (Supabase)
 - Already hosted, just configure environment variables
 
-## 🛡️ Security Notes
+## Security Notes
 
 - API keys stored in environment variables
 - CORS configured for specific origins
 - Input validation on file uploads
 - Rate limiting recommended for production
 
-## 📊 Cost Breakdown (All Free Tier)
+## Cost Breakdown (All Free Tier)
 
-| Service | Free Tier Limits | Monthly Cost |
-|---------|------------------|--------------|
-| Cohere API | 100k tokens | $0 |
-| HuggingFace | 30k tokens | $0 |
-| Supabase | 500MB DB, 500k calls | $0 |
-| Vercel | 100GB bandwidth | $0 |
-| Deta Space | Unlimited apps | $0 |
-| USDA API | Unlimited | $0 |
-| **Total** | | **$0/month** |
+| Service | Notes |
+|---------|-------|
+| OpenRouter | Usage-based pricing; choose models like DeepSeek R1 via OpenRouter |
+| HuggingFace | 30k tokens free for Inference API (varies) |
+| Supabase | 500MB DB, 500k calls free tier |
+| Vercel | 100GB bandwidth free tier |
+| Deta Space | Free tier available |
+| USDA API | Unlimited |
 
 ## 🤝 Contributing
 

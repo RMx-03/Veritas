@@ -18,7 +18,7 @@ import os
 import json
 import logging
 from typing import Dict, Any, Optional
-from PIL import Image
+from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 
 try:
     from transformers import TrOCRProcessor, VisionEncoderDecoderModel
@@ -76,6 +76,34 @@ def _get_trocr_components(model_id: str):
     
     return _trocr_processor, _trocr_model
 
+def _pil_preprocess(image: Image.Image) -> Image.Image:
+    """Lightweight preprocessing to improve OCR robustness without extra deps.
+    - Auto-orient using EXIF
+    - Convert to RGB
+    - Auto-contrast, gentle sharpen and contrast boost
+    - Upscale small images to improve legibility before model resize
+    """
+    try:
+        image = ImageOps.exif_transpose(image)
+    except Exception:
+        pass
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    # Improve contrast and sharpness slightly
+    image = ImageOps.autocontrast(image)
+
+    # Upscale if the image is relatively small
+    max_side = max(image.size)
+    if max_side < 1000:
+        scale = 1280 / max_side
+        new_size = (int(image.width * scale), int(image.height * scale))
+        image = image.resize(new_size, Image.LANCZOS)
+
+    image = ImageEnhance.Sharpness(image).enhance(1.2)
+    image = ImageEnhance.Contrast(image).enhance(1.2)
+    return image
+
 def _local_trocr_extract(model_id: str, image_path: str) -> str:
     """Extract text from image using local TrOCR model.
     Returns plain text or raises on failure.
@@ -84,30 +112,55 @@ def _local_trocr_extract(model_id: str, image_path: str) -> str:
     logger.info(f"[TrOCR] Processing image with model: {model_id}")
     
     try:
-        # Load image
-        image = Image.open(image_path).convert('RGB')
+        # Load and preprocess image
+        raw_image = Image.open(image_path)
+        base_image = _pil_preprocess(raw_image)
         
         # Get processor and model
         processor, model = _get_trocr_components(model_id)
+        model.eval()
         
-        # Process image and generate text
-        pixel_values = processor(image, return_tensors="pt").pixel_values
-        logger.info(f"[TrOCR] Input image tensor shape: {pixel_values.shape}")
+        def _infer(img: Image.Image) -> str:
+            pixel_values = processor(img, return_tensors="pt").pixel_values
+            try:
+                pixel_values = pixel_values.to(next(model.parameters()).device)
+            except Exception:
+                pass
+            logger.info(f"[TrOCR] Input image tensor shape: {pixel_values.shape}")
+            import torch
+            with torch.no_grad():
+                generated_ids = model.generate(
+                    pixel_values,
+                    max_new_tokens=256,
+                    do_sample=False,
+                    num_beams=4,
+                    early_stopping=True,
+                )
+            logger.info(f"[TrOCR] Generated token IDs shape: {generated_ids.shape}")
+            text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            return text.strip()
         
-        generated_ids = model.generate(
-            pixel_values,
-            max_new_tokens=256,  # Allow much longer text generation
-            do_sample=False,     # Use greedy decoding for consistency
-            num_beams=4,         # Beam search for better quality
-            early_stopping=True
-        )
-        logger.info(f"[TrOCR] Generated token IDs shape: {generated_ids.shape}")
-        logger.info(f"[TrOCR] Generated token IDs: {generated_ids[0].tolist()[:20]}...")  # First 20 tokens
+        # Try multiple orientations to handle rotated labels
+        candidates = []
+        for angle in [0, 90, -90, 180]:
+            img_try = base_image.rotate(angle, expand=True) if angle != 0 else base_image
+            try:
+                text = _infer(img_try)
+                candidates.append((len(text), text, angle))
+                logger.info(f"[TrOCR] Angle {angle}: extracted {len(text)} chars")
+                # Quick win: if we already have decent length, stop early
+                if len(text) >= 10:
+                    break
+            except Exception as ie:
+                logger.warning(f"[TrOCR] Inference failed at angle {angle}: {ie}")
         
-        generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-        
-        logger.info(f"[TrOCR] Extracted {len(generated_text)} characters")
-        return generated_text.strip()
+        # Choose the best candidate by length
+        if candidates:
+            best = max(candidates, key=lambda t: t[0])
+            logger.info(f"[TrOCR] Best orientation {best[2]} with {best[0]} chars")
+            return best[1]
+        else:
+            raise RuntimeError("TrOCR produced no candidates")
         
     except Exception as e:
         logger.error(f"[TrOCR] Extraction failed: {e}")
@@ -115,11 +168,58 @@ def _local_trocr_extract(model_id: str, image_path: str) -> str:
 
 
 def _fallback_extract(image_path: str) -> str:
-    """Simple fallback OCR extraction.
-    Returns placeholder text for now.
+    """Best-effort fallback OCR extraction.
+    Tries enhanced OCR providers, then Tesseract-based methods, then placeholder.
     """
-    logger.info(f"[FALLBACK] Using fallback extraction for: {image_path}")
-    return "Nutrition Facts [Fallback OCR - please install transformers for better results]"
+    logger.info(f"[FALLBACK] Using enhanced fallback extraction for: {image_path}")
+
+    # 1) Try enhanced OCR module if available (Gemini/Google Vision/EasyOCR/Tesseract)
+    try:
+        from ocr_enhanced import extract_text_from_image as enhanced_extract
+        text = enhanced_extract(image_path)
+        if text and len(text.strip()) >= 10:
+            logger.info("[FALLBACK] Enhanced OCR succeeded")
+            return text.strip()
+    except Exception as e:
+        logger.warning(f"[FALLBACK] Enhanced OCR failed: {e}")
+
+    # 2) Try our OpenCV + Tesseract pipeline
+    try:
+        from ocr import extract_text_from_image as tesseract_extract
+        text = tesseract_extract(image_path)
+        if text and len(text.strip()) >= 10:
+            logger.info("[FALLBACK] Tesseract OCR (opencv-preprocessed) succeeded")
+            return text.strip()
+    except Exception as e:
+        logger.warning(f"[FALLBACK] Tesseract (opencv) failed: {e}")
+
+    # 3) Try raw pytesseract if binary is present
+    try:
+        import pytesseract
+        from PIL import Image
+        # Allow explicit override via env var
+        tcmd = os.getenv("TESSERACT_CMD")
+        if tcmd:
+            try:
+                pytesseract.pytesseract.tesseract_cmd = tcmd
+            except Exception:
+                pass
+        # Ensure binary is reachable
+        _ = pytesseract.get_tesseract_version()
+
+        img = Image.open(image_path)
+        if img.mode != "L":
+            img = img.convert("L")
+        text = pytesseract.image_to_string(img, lang="eng", config="--psm 6")
+        if text and len(text.strip()) >= 10:
+            logger.info("[FALLBACK] Raw pytesseract succeeded")
+            return text.strip()
+    except Exception as e:
+        logger.warning(f"[FALLBACK] Raw pytesseract failed: {e}")
+
+    # 4) Last resort placeholder
+    logger.warning("[FALLBACK] All fallback methods failed, returning placeholder text")
+    return "Nutrition Facts (placeholder) — OCR failed. Try clearer photo; optionally install Tesseract and set TESSERACT_CMD."
 
 
 def _structure_with_parser(text: str) -> Dict[str, Any]:
@@ -157,8 +257,37 @@ def extract_structured_from_image(image_path: str) -> Dict[str, Any]:
         structured = _structure_with_parser(text)
         return {"text": text, "structured": structured, "method": method}
     
-    # Default: Local TrOCR + parser
-    text = _local_trocr_extract(HF_TROCR_MODEL, image_path)
-    method = f"Local TrOCR ({HF_TROCR_MODEL})"
+    # Default: Local TrOCR + parser with resilience
+    tried = []
+    text = ""
+    method = ""
+    # 1) Try configured model
+    try:
+        text = _local_trocr_extract(HF_TROCR_MODEL, image_path)
+        tried.append(HF_TROCR_MODEL)
+        method = f"Local TrOCR ({HF_TROCR_MODEL})"
+    except Exception as e:
+        logger.warning(f"[OCR] Primary TrOCR model failed: {e}")
+        text = ""
+
+    # 2) If too short, try base model as a fallback
+    if not text or len(text.strip()) < 10:
+        alt_model = "microsoft/trocr-base-printed"
+        if alt_model not in tried:
+            try:
+                logger.info(f"[OCR] Trying fallback TrOCR model: {alt_model}")
+                alt_text = _local_trocr_extract(alt_model, image_path)
+                if len(alt_text.strip()) > len(text.strip()):
+                    text = alt_text
+                    method = f"Local TrOCR ({alt_model})"
+            except Exception as e:
+                logger.warning(f"[OCR] Fallback TrOCR model failed: {e}")
+
+    # 3) Final fallback: placeholder to allow downstream parsing (better UX than hard fail)
+    if not text or len(text.strip()) < 10:
+        logger.warning("[OCR] Insufficient text after TrOCR attempts, using fallback extractor")
+        text = _fallback_extract(image_path)
+        method = "Fallback OCR"
+
     structured = _structure_with_parser(text)
     return {"text": text, "structured": structured, "method": method}

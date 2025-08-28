@@ -17,7 +17,7 @@ This project focuses on building a **free-to-deploy web application** with moder
 1. User uploads/captures food label image.
 2. Backend runs OCR to extract text from the image.
 3. Extracted text is structured into categories: nutrients, ingredients, claims.
-4. Structured data is analyzed using Cohere AI reasoning and nutrition APIs.
+4. Structured data is analyzed using OpenRouter (DeepSeek R1) and nutrition APIs.
 5. Results are returned to the frontend:
    - Nutritional summary
    - Claim validation (true/false + explanation)
@@ -27,7 +27,7 @@ This project focuses on building a **free-to-deploy web application** with moder
 
 ### System Flow
 ```
-Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (HF TrOCR/Donut) → NLP Structuring (Regex + optional DocVQA) → AI Reasoning (Cohere API) → Knowledge Base (USDA + OpenFoodFacts) → Supabase DB → Frontend Results
+Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (HF TrOCR/Donut) → NLP Structuring (Regex + optional DocVQA) → AI Reasoning (OpenRouter DeepSeek R1) → Knowledge Base (USDA + OpenFoodFacts) → Supabase DB → Frontend Results
 ```
 
 ---
@@ -50,7 +50,7 @@ Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (HF TrOCR/Donu
 - **Hugging Face Inference API (Free)** → To classify text into nutrients/ingredients/claims.
 
 ### AI Reasoning
-- **Cohere API (Free tier)** → 100k tokens/month free, used for natural explanations & claim verification.
+- **OpenRouter (DeepSeek R1)** → Used for natural explanations & claim verification via OpenRouter Chat Completions.
 
 ### Knowledge Base
 - **USDA FoodData Central API** → Nutrient reference values.
@@ -68,7 +68,7 @@ Frontend (React + Tailwind) → Backend (FastAPI on Deta) → OCR (HF TrOCR/Donu
 | Backend     | FastAPI, Deta Space | ✅ | Free hosting, lightweight only |
 | OCR         | Tesseract OCR | ✅ | Local processing in backend |
 | NLP Structuring | Regex + HuggingFace API | ✅ | Free tier: 30k tokens/month |
-| AI Reasoning | Cohere API | ✅ | Free tier: 100k tokens/month |
+| AI Reasoning | OpenRouter (DeepSeek R1) | ✅ | Usage-based via OpenRouter |
 | DB          | Supabase       | ✅ | 500MB free storage, 500k calls/month |
 | Knowledge   | USDA / OpenFoodFacts | ✅ | Unlimited free |
 
@@ -89,7 +89,7 @@ veritas/
 │   ├── main.py               # FastAPI entrypoint
 │   ├── ocr_pipeline.py       # Unified OCR (TrOCR/Donut via HF)
 │   ├── parser.py             # Regex + NLP structuring
-│   ├── analyzer.py           # Cohere + API checks
+│   ├── analyzer.py           # OpenRouter + API checks
 │   ├── requirements.txt
 │   └── tests/
 │
@@ -119,7 +119,7 @@ veritas/
 - Use Hugging Face free API to classify claims vs facts.
 
 ### Step 4: AI Reasoning
-- Send extracted claims + ingredients to Cohere API.
+- Send extracted claims + ingredients to OpenRouter (DeepSeek R1).
 - Generate human-friendly explanations.
 
 ### Step 5: Knowledge Base Integration
@@ -159,8 +159,7 @@ veritas/
 This `products.md` provides the **end-to-end roadmap** to build Veritas:
 - Purpose: AI nutrition scientist.
 - Workflow: OCR → Structuring → AI Analysis → Knowledge Base → Results.
-- Tools: 100% free stack (React, FastAPI, Cohere, Supabase, Deta Space, Hugging Face API).
+- Tools: Free-tier stack (React, FastAPI, OpenRouter/DeepSeek R1, Supabase, Deta Space, Hugging Face API).
 - Deployment: Free-tier services only.
 
 By following this guide, an AI coding assistant (like Windsurf) can generate the project from **0 to deployable MVP** without any hidden costs.
-
