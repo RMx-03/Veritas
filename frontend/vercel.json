@@ -4,14 +4,6 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
-  "env": {
-    "VITE_API_URL": "@veritas-api-url"
-  },
-  "build": {
-    "env": {
-      "VITE_API_URL": "@veritas-api-url"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
