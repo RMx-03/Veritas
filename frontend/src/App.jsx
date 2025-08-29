@@ -55,10 +55,13 @@ function App() {
       ) : (
         <main id="main-content">
           {/* Hero Section */}
-          <Hero />
+          <Hero onGetStarted={() => {
+            const uploadSection = document.getElementById('upload-section');
+            uploadSection?.scrollIntoView({ behavior: 'smooth' });
+          }} />
           
           {/* Upload Form Section */}
-          <section className="py-20 bg-white" aria-labelledby="upload-heading">
+          <section id="upload-section" className="py-20 bg-white" aria-labelledby="upload-heading">
             <div className="container-wide">
               <div className="max-w-2xl mx-auto text-center mb-12">
                 <h2 className="text-3xl font-bold text-neutral-900 mb-4">
@@ -88,7 +91,9 @@ function App() {
           </section>
 
           {/* How It Works Section */}
-          <HowItWorks />
+          <div id="how-it-works-section">
+            <HowItWorks />
+          </div>
           
           {/* Footer */}
           <footer className="bg-neutral-900 text-white py-8">

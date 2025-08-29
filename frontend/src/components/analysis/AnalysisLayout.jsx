@@ -3,6 +3,7 @@ import { ArrowLeft, Download, Share2, Bookmark } from 'lucide-react';
 import NutritionTable from './NutritionTable';
 import ClaimBadge from './ClaimBadge';
 import RightRail from './RightRail';
+import ClaimsAnalysis from './ClaimsAnalysis';
 
 const AnalysisLayout = ({ analysisData, imagePreview, onReset }) => {
   // Extract data with fallbacks
@@ -228,6 +229,9 @@ const AnalysisLayout = ({ analysisData, imagePreview, onReset }) => {
                 </p>
               </div>
             </div>
+
+            {/* Claims Verification */}
+            <ClaimsAnalysis claims={analysisData?.claim_verification || []} />
 
             {/* Health Impact */}
             <div className="card">

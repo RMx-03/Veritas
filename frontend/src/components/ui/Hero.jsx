@@ -56,7 +56,7 @@ const Hero = ({ onGetStarted }) => {
               </button>
               <button 
                 onClick={() => {
-                  const howItWorksSection = document.querySelector('section:has(h2)');
+                  const howItWorksSection = document.getElementById('how-it-works-section');
                   howItWorksSection?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="btn-secondary btn-lg w-full sm:w-auto min-w-[180px] group"

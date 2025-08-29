@@ -159,6 +159,13 @@ const RightRail = ({ imagePreview, insights, recommendations, analysisData }) =>
               {analysisData?.processing_notes?.ocr_engine || 'Advanced'}
             </span>
           </div>
+
+          <div className="flex justify-between">
+            <span className="text-neutral-600">AI Model:</span>
+            <span className="font-semibold text-neutral-900">
+              {analysisData?.processing_notes?.ai_model || 'disabled'}
+            </span>
+          </div>
           
           <div className="flex justify-between">
             <span className="text-neutral-600">Generated:</span>
