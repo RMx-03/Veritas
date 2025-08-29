@@ -1,27 +1,448 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  * {
+    @apply border-neutral-200;
+  }
+  
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    @apply scroll-smooth;
+    font-size: 16px;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply font-sans text-neutral-900 bg-white antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+    font-feature-settings: 'ss01', 'cv01', 'cv02';
+  }
+  
+  /* Focus states for accessibility */
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  /* Focus States for Accessibility - WCAG AA Compliant */
+  .focus-visible,
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand-blue-600 ring-offset-2 ring-offset-white;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none ring-2 ring-brand-blue-600 ring-offset-2;
+  }
+
+  /* High contrast focus for dark backgrounds */
+  .bg-neutral-900 button:focus-visible,
+  .bg-neutral-900 a:focus-visible {
+    @apply ring-brand-blue-400 ring-offset-neutral-900;
   }
 }
 
 @layer components {
+  /* Modern button system */
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors;
+    @apply btn bg-brand-blue-500 text-white hover:bg-brand-blue-600 focus:ring-brand-blue-500 shadow-medium hover:shadow-large;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors;
+    @apply btn bg-white text-neutral-900 border border-neutral-200 hover:bg-neutral-50 focus:ring-neutral-300 shadow-soft hover:shadow-medium;
   }
   
+  .btn-teal {
+    @apply btn bg-brand-teal-500 text-white hover:bg-brand-teal-600 focus:ring-brand-teal-500 shadow-medium hover:shadow-large;
+  }
+  
+  .btn-ghost {
+    @apply btn text-neutral-700 hover:bg-neutral-100 focus:ring-neutral-300;
+  }
+  
+  .btn-lg {
+    @apply px-8 py-4 text-base;
+  }
+  
+  .btn-sm {
+    @apply px-4 py-2 text-xs;
+  }
+  
+  /* Card components */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+    @apply bg-white rounded-3xl p-8 shadow-soft border border-neutral-100 transition-all duration-300;
+  }
+  
+  .card:hover {
+    @apply shadow-medium -translate-y-1;
+  }
+  
+  .card-hover {
+    @apply bg-white rounded-3xl p-8 shadow-soft border border-neutral-100 transition-all duration-300 hover:shadow-medium hover:-translate-y-1 hover:border-brand-blue-200;
+  }
+  
+  /* Typography utilities */
+  .text-display {
+    @apply font-display font-bold tracking-tight;
+  }
+  
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-brand-blue-600 to-brand-teal-500 bg-clip-text text-transparent;
+  }
+  
+  /* Color Contrast Utilities - WCAG AA Compliant */
+  .text-contrast-aa {
+    color: #1f2937; /* 4.5:1 contrast ratio on white */
+  }
+
+  .bg-contrast-aa {
+    background-color: #1f2937;
+  }
+
+  /* Enhanced contrast for better readability */
+  .text-high-contrast {
+    color: #000000;
+  }
+
+  .text-accessible-blue {
+    color: #1e40af; /* High contrast blue for links */
+  }
+
+  /* Ensure sufficient contrast for status indicators */
+  .status-success {
+    color: #065f46; /* Dark green for high contrast */
+    background-color: #d1fae5;
+  }
+
+  .status-warning {
+    color: #92400e; /* Dark amber for high contrast */
+    background-color: #fef3c7;
+  }
+
+  .status-error {
+    color: #991b1b; /* Dark red for high contrast */
+    background-color: #fee2e2;
+  }
+  
+  /* Layout components */
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-6;
+  }
+  
+  .container-wide {
+    @apply max-w-8xl mx-auto px-6;
+  }
+  
+  .section-padding {
+    @apply py-24;
+  }
+  
+  .section-padding-sm {
+    @apply py-16;
+  }
+  
+  /* Nutrition-specific components */
+  .nutrition-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  
+  .nutrition-excellent {
+    @apply nutrition-badge bg-emerald-100 text-emerald-800;
+  }
+  
+  .nutrition-good {
+    @apply nutrition-badge bg-lime-100 text-lime-800;
+  }
+  
+  .nutrition-moderate {
+    @apply nutrition-badge bg-amber-100 text-amber-800;
+  }
+  
+  .nutrition-poor {
+    @apply nutrition-badge bg-red-100 text-red-800;
+  }
+  
+  .nutrition-critical {
+    @apply nutrition-badge bg-red-200 text-red-900;
+  }
+  
+  /* Micro-interactions */
+  .interactive {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+  
+  .interactive:hover {
+    @apply scale-105;
+  }
+  
+  .interactive:active {
+    @apply scale-95;
+  }
+  
+  /* Enhanced Button hover effects */
+  .btn {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .btn:hover {
+    @apply scale-105 shadow-lg;
+  }
+  
+  .btn:active {
+    @apply scale-95;
+  }
+  
+  .btn-primary:hover {
+    @apply shadow-brand-blue-500/25;
+  }
+  
+  .btn-secondary:hover {
+    @apply bg-neutral-100 border-neutral-300;
+  }
+  
+  .btn-ghost:hover {
+    @apply bg-neutral-100 text-neutral-900;
+  }
+  
+  /* Loading states */
+  .loading-shimmer {
+    @apply bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-no-repeat;
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  .loading-pulse {
+    @apply animate-pulse bg-neutral-200 rounded;
+  }
+  
+  .loading-spinner {
+    @apply animate-spin rounded-full border-2 border-neutral-200 border-t-brand-blue-600;
+  }
+  
+  .loading-shimmer {
+    @apply relative overflow-hidden bg-neutral-100;
+  }
+  
+  .loading-shimmer::after {
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent;
+    content: '';
+    animation: shimmer 2s infinite;
+  }
+}
+
+@layer utilities {
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+  
+  /* Skip Links and Screen Reader Support - WCAG AA */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  }
+
+  .not-sr-only {
+    @apply static w-auto h-auto p-0 m-0 overflow-visible whitespace-normal;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50;
+    @apply bg-white text-neutral-900 px-4 py-2 rounded-lg shadow-lg;
+    @apply font-semibold text-sm border-2 border-brand-blue-600;
+  }
+
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .btn-primary {
+      @apply border-2 border-brand-blue-700;
+    }
+    
+    .card {
+      @apply border-2 border-neutral-300;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .interactive:hover {
+      @apply scale-100;
+    }
+    
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.8s ease-out;
+  }
+  
+  .animate-slide-in-left {
+    animation: slide-in-left 0.6s ease-out;
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-right 0.6s ease-out;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-bounce-gentle {
+    animation: bounce-gentle 2s ease-in-out infinite;
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
+  }
+  
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out;
+  }
+}
+
+/* Custom keyframes */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

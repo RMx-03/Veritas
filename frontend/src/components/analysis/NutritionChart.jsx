@@ -1,17 +1,18 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 function NutritionChart({ nutritionFacts }) {
+  // Map backend field names to display data
   const macroData = [
-    { name: 'Carbs', value: nutritionFacts?.carbohydrates || 0, color: '#3b82f6' },
+    { name: 'Carbs', value: nutritionFacts?.total_carbs || nutritionFacts?.carbohydrates || 0, color: '#3b82f6' },
     { name: 'Protein', value: nutritionFacts?.protein || 0, color: '#10b981' },
-    { name: 'Fat', value: nutritionFacts?.fat || 0, color: '#f59e0b' }
+    { name: 'Fat', value: nutritionFacts?.total_fat || nutritionFacts?.fat || 0, color: '#f59e0b' }
   ]
 
   const dailyValueData = [
     { name: 'Calories', value: nutritionFacts?.calories || 0, dailyValue: nutritionFacts?.caloriesDV || 0 },
-    { name: 'Sodium', value: nutritionFacts?.sodium || 0, dailyValue: nutritionFacts?.sodiumDV || 0 },
-    { name: 'Sugar', value: nutritionFacts?.sugar || 0, dailyValue: nutritionFacts?.sugarDV || 0 },
-    { name: 'Fiber', value: nutritionFacts?.fiber || 0, dailyValue: nutritionFacts?.fiberDV || 0 }
+    { name: 'Sodium', value: nutritionFacts?.sodium || 0, dailyValue: nutritionFacts?.sodiumDV || nutritionFacts?.sodium_dv || 0 },
+    { name: 'Sugar', value: nutritionFacts?.total_sugars || nutritionFacts?.sugar || 0, dailyValue: nutritionFacts?.sugarDV || 0 },
+    { name: 'Fiber', value: nutritionFacts?.dietary_fiber || nutritionFacts?.fiber || 0, dailyValue: nutritionFacts?.fiberDV || nutritionFacts?.dietary_fiber_dv || 0 }
   ]
 
   return (
@@ -73,7 +74,7 @@ function NutritionChart({ nutritionFacts }) {
         </div>
         <div className="bg-gray-50 p-3 rounded-lg">
           <div className="text-sm text-gray-600">Serving Size</div>
-          <div className="text-xl font-bold text-gray-900">{nutritionFacts?.servingSize || 'N/A'}</div>
+          <div className="text-xl font-bold text-gray-900">{nutritionFacts?.serving_size || nutritionFacts?.servingSize || 'N/A'}</div>
         </div>
       </div>
     </div>

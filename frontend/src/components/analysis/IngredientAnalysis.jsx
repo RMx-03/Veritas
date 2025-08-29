@@ -18,9 +18,43 @@ function IngredientAnalysis({ analysis }) {
     <div className="card">
       <h3 className="font-semibold text-gray-900 mb-4">Ingredient Analysis</h3>
       
-      {analysis?.ingredients && analysis.ingredients.length > 0 ? (
+      {(analysis?.ingredients || analysis?.beneficial || analysis?.concerning) ? (
         <div className="space-y-4">
-          {/* Flagged Ingredients */}
+          {/* Beneficial Ingredients */}
+          {analysis.beneficial && analysis.beneficial.length > 0 && (
+            <div>
+              <h4 className="font-medium text-gray-900 mb-3">🌿 Beneficial Ingredients</h4>
+              <div className="space-y-2">
+                {analysis.beneficial.map((ingredient, index) => (
+                  <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="h-5 w-5 text-green-600" />
+                      <span className="font-medium text-green-800">{ingredient}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Concerning Ingredients */}
+          {analysis.concerning && analysis.concerning.length > 0 && (
+            <div>
+              <h4 className="font-medium text-gray-900 mb-3">⚠️ Ingredients of Concern</h4>
+              <div className="space-y-2">
+                {analysis.concerning.map((ingredient, index) => (
+                  <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      <span className="font-medium text-red-800">{ingredient}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Legacy Flagged Ingredients Support */}
           {analysis.flaggedIngredients && analysis.flaggedIngredients.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-900 mb-3">⚠️ Ingredients of Concern</h4>
@@ -58,31 +92,38 @@ function IngredientAnalysis({ analysis }) {
           )}
 
           {/* All Ingredients List */}
-          <div>
-            <h4 className="font-medium text-gray-900 mb-3">Complete Ingredient List</h4>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex flex-wrap gap-2">
-                {analysis.ingredients.map((ingredient, index) => {
-                  const isFlagged = analysis.flaggedIngredients?.some(
-                    flagged => flagged.name.toLowerCase() === ingredient.toLowerCase()
-                  )
-                  
-                  return (
-                    <span
-                      key={index}
-                      className={`inline-block px-2 py-1 rounded text-sm ${
-                        isFlagged
-                          ? 'bg-red-100 text-red-800 border border-red-200'
-                          : 'bg-white text-gray-700 border border-gray-200'
-                      }`}
-                    >
-                      {ingredient}
-                    </span>
-                  )
-                })}
+          {(analysis.ingredients || analysis.additives) && (
+            <div>
+              <h4 className="font-medium text-gray-900 mb-3">Complete Ingredient List</h4>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex flex-wrap gap-2">
+                  {(analysis.ingredients || analysis.additives || []).map((ingredient, index) => {
+                    const isConcerning = analysis.concerning?.some(
+                      concerning => concerning.toLowerCase().includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(concerning.toLowerCase())
+                    )
+                    const isBeneficial = analysis.beneficial?.some(
+                      beneficial => beneficial.toLowerCase().includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(beneficial.toLowerCase())
+                    )
+                    
+                    return (
+                      <span
+                        key={index}
+                        className={`inline-block px-2 py-1 rounded text-sm ${
+                          isConcerning
+                            ? 'bg-red-100 text-red-800 border border-red-200'
+                            : isBeneficial
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : 'bg-white text-gray-700 border border-gray-200'
+                        }`}
+                      >
+                        {ingredient}
+                      </span>
+                    )
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Allergen Information */}
           {analysis.allergens && analysis.allergens.length > 0 && (
