@@ -1,11 +1,17 @@
-import json
-import os
-from typing import Dict, List, Any, Optional
-from dotenv import load_dotenv
 import asyncio
+import json
+import logging
+import os
+from typing import Dict, Any, List, Optional
 from openai import AsyncOpenAI
+from dotenv import load_dotenv
+from .food_scientist_analyzer import analyze_with_food_science
 
+# Load environment variables
 load_dotenv()
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # API Configuration
 USDA_API_KEY = os.getenv("USDA_API_KEY")  # Optional, USDA has public endpoints
@@ -35,52 +41,152 @@ if OPENROUTER_API_KEY:
 USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1"
 OPENFOODFACTS_URL = "https://world.openfoodfacts.org/api/v0/product"
 
-async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str) -> Dict[str, Any]:
+async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str = "") -> Dict[str, Any]:
     """
-    Comprehensive analysis using AI reasoning and knowledge bases
+    Comprehensive nutrition analysis pipeline with scientific insights
     """
-    results = {
-        "nutrition_facts": structured_data.get("nutrition_facts", {}),
-        "claim_verification": [],
-        "ingredient_analysis": {},
-        "health_recommendation": {},
-        "overall_score": 0,
-        "key_insights": [],
-        "recommendations": []
-    }
+    logger.info("Starting comprehensive food science analysis")
+    
+    # Extract basic info
+    nutrition_facts = structured_data.get('nutrition_facts', {})
+    ingredients = structured_data.get('ingredients', [])
+    claims = structured_data.get('claims', [])
     
     try:
-        # Run analysis tasks concurrently
-        tasks = [
-            verify_health_claims(structured_data.get("claims", []), structured_data.get("nutrition_facts", {})),
-            analyze_ingredients(structured_data.get("ingredients", [])),
-            generate_health_recommendation(structured_data, raw_text),
-            get_nutrition_insights(structured_data.get("nutrition_facts", {}))
+        # Get comprehensive scientific analysis
+        logger.info("Starting scientific analysis with food science module")
+        logger.info(f"Input nutrition_facts: {nutrition_facts}")
+        logger.info(f"Input ingredients: {ingredients}")
+        scientific_analysis = await analyze_with_food_science(nutrition_facts, ingredients, raw_text)
+        logger.info(f"Scientific analysis completed: {type(scientific_analysis)}")
+        logger.info(f"Scientific analysis keys: {scientific_analysis.keys() if scientific_analysis else 'None'}")
+        if scientific_analysis:
+            logger.info(f"Overall score: {scientific_analysis.get('overall_score')}")
+            logger.info(f"Recommendation level: {scientific_analysis.get('recommendation_level')}")
+        
+        # Run additional analysis tasks concurrently
+        additional_tasks = [
+            verify_health_claims(claims, nutrition_facts),
+            get_ai_health_recommendation(structured_data, raw_text),
         ]
         
-        claim_verification, ingredient_analysis, health_recommendation, nutrition_insights = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*additional_tasks, return_exceptions=True)
+        claim_verification = results[0] if not isinstance(results[0], Exception) else {"status": "error", "verified_claims": [], "warnings": []}
+        ai_recommendation = results[1] if not isinstance(results[1], Exception) else None
         
-        results["claim_verification"] = claim_verification
-        results["ingredient_analysis"] = ingredient_analysis
-        results["health_recommendation"] = health_recommendation
-        results["key_insights"] = nutrition_insights
+        # Log AI recommendation result
+        logger.info(f"AI recommendation result: {type(ai_recommendation)}")
+        if ai_recommendation:
+            logger.info(f"AI recommendation keys: {ai_recommendation.keys()}")
+        else:
+            logger.warning("AI recommendation failed or returned None")
         
-        # Calculate overall health score
-        results["overall_score"] = calculate_overall_score(results)
+        # Compile comprehensive analysis results with scientific insights - structured for frontend
+        analysis_result = {
+            "nutrition_facts": nutrition_facts,
+            "scientific_analysis": {
+                "nutrient_density_score": scientific_analysis.get('scientific_analysis', {}).get('nutrient_density_score', 0),
+                "processing_level": scientific_analysis.get('scientific_analysis', {}).get('processing_level', 'ultra_processed'),
+                "nova_classification": scientific_analysis.get('scientific_analysis', {}).get('nova_classification', 4),
+                "macronutrient_balance": scientific_analysis.get('macronutrient_balance', {}),
+                "additive_risk_score": scientific_analysis.get('scientific_analysis', {}).get('additive_risk_score', 0),
+                "ingredient_complexity_index": scientific_analysis.get('ingredient_analysis', {}).get('complexity_index', 0),
+                "evidence_based_insights": scientific_analysis.get('evidence_based_insights', {})
+            },
+            "ingredients_analysis": scientific_analysis.get('ingredient_analysis', {}),
+            "health_score": {
+                "score": scientific_analysis.get('overall_score', 50),
+                "level": scientific_analysis.get('recommendation_level', 'moderate').lower(),
+                "factors": scientific_analysis.get('evidence_based_insights', {}).get('key_findings', [])
+            },
+            "health_impact_assessment": scientific_analysis.get('health_impact_assessment', {}),
+            "claim_verification": claim_verification,
+            "key_insights": scientific_analysis.get('evidence_based_insights', {}).get('key_findings', []),
+            "recommendations": scientific_analysis.get('evidence_based_insights', {}).get('consumption_recommendations', []),
+            "ai_recommendation": ai_recommendation,
+            "analysis_timestamp": asyncio.get_event_loop().time(),
+            "processing_notes": {
+                "ocr_confidence": "high" if len(raw_text) > 100 else "medium",
+                "data_completeness": len(nutrition_facts) / 10.0 * 100,
+                "analysis_version": "v3.0_scientific",
+                "nova_classification": scientific_analysis.get('scientific_analysis', {}).get('nova_classification', 4),
+                "nutrient_density": scientific_analysis.get('scientific_analysis', {}).get('nutrient_density_score', 0)
+            }
+        }
         
-        # Generate recommendations
-        results["recommendations"] = generate_recommendations(results)
+        logger.info(f"Scientific analysis completed with score: {scientific_analysis.get('overall_score', 'N/A')}")
+        return analysis_result
         
     except Exception as e:
-        print(f"Analysis error: {e}")
-        # Return basic results even if AI analysis fails
-        results["health_recommendation"] = {
-            "level": "moderate",
-            "summary": "Analysis completed with limited data. Please verify nutrition information manually.",
-            "reasons": ["Limited data available for comprehensive analysis"]
-        }
-    
-    return results
+        logger.error(f"Error in scientific nutrition analysis: {str(e)}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        # Fallback to basic analysis if scientific analysis fails
+        try:
+            # Enhanced fallback analysis when scientific analysis fails
+            ingredient_analysis = {
+                "beneficial": [ing for ing in ingredients if any(good in ing.lower() for good in ['organic', 'whole grain', 'natural'])],
+                "concerning": [ing for ing in ingredients if any(bad in ing.lower() for bad in ['artificial', 'preservative', 'dye', 'high fructose'])],
+                "additives": [ing for ing in ingredients if any(add in ing.lower() for add in ['sodium', 'phosphate', 'extract', 'flavor'])]
+            }
+            
+            calories = nutrition_facts.get('calories', 0)
+            total_fat = nutrition_facts.get('total_fat', 0)
+            
+            key_insights = []
+            if calories > 250:
+                key_insights.append("High calorie content - consume in moderation")
+            if total_fat > 15:
+                key_insights.append("High fat content detected")
+            if len(ingredients) > 10:
+                key_insights.append("Highly processed product with many ingredients")
+            
+            # Add some basic ingredient analysis
+            if any('sugar' in ing.lower() for ing in ingredients):
+                key_insights.append("Contains added sugars")
+            if any('butter' in ing.lower() for ing in ingredients):
+                key_insights.append("Contains dairy ingredients")
+            
+            if not key_insights:
+                key_insights = ["Basic nutritional analysis completed", "Consider portion control"]
+            
+            # Calculate basic score
+            score = 60  # Start with moderate score
+            if calories > 300: score -= 20
+            if total_fat > 20: score -= 15
+            if len(ingredients) > 15: score -= 10
+            score = max(0, min(100, score))
+            
+            return {
+                "nutrition_facts": nutrition_facts,
+                "ingredients_analysis": ingredient_analysis,
+                "health_score": {
+                    "score": score,
+                    "level": "moderate" if score >= 40 else "poor",
+                    "factors": key_insights
+                },
+                "key_insights": key_insights,
+                "recommendations": ["Consume in moderation", "Consider healthier alternatives"],
+                "error": "Scientific analysis failed - using enhanced fallback",
+                "analysis_timestamp": asyncio.get_event_loop().time(),
+                "processing_notes": {
+                    "analysis_type": "enhanced_fallback",
+                    "data_completeness": len(nutrition_facts) / 10.0 * 100,
+                    "ocr_confidence": "medium"
+                }
+            }
+        except Exception as fallback_error:
+            logger.error(f"Fallback analysis also failed: {str(fallback_error)}")
+            return {
+                "error": "Complete analysis failure",
+                "message": str(e),
+                "nutrition_facts": nutrition_facts,
+                "basic_info": {
+                    "ingredients_count": len(ingredients),
+                    "claims_count": len(claims),
+                    "status": "failed"
+                }
+            }
 
 async def verify_health_claims(claims: List[str], nutrition_facts: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
@@ -428,56 +534,145 @@ async def generate_health_recommendation(structured_data: Dict[str, Any], raw_te
 
 async def get_ai_health_recommendation(structured_data: Dict[str, Any], raw_text: str) -> Optional[Dict[str, Any]]:
     """
-    Generate AI-powered health recommendation via OpenRouter
+    Generate comprehensive AI-powered food science analysis via OpenRouter
     """
     if not or_client:
         return None
 
+    nutrition_facts = structured_data.get('nutrition_facts', {})
+    ingredients = structured_data.get('ingredients', [])
+    
+    # Enhanced context for scientific analysis
+    serving_size = nutrition_facts.get('serving_size', 'Unknown')
+    calories = nutrition_facts.get('calories', 0)
+    total_fat = nutrition_facts.get('total_fat', 0)
+    saturated_fat = nutrition_facts.get('saturated_fat', 0)
+    sodium = nutrition_facts.get('sodium', 0)
+    total_carbs = nutrition_facts.get('total_carbs', 0)
+    fiber = nutrition_facts.get('dietary_fiber', 0)
+    sugars = nutrition_facts.get('total_sugars', 0)
+    protein = nutrition_facts.get('protein', 0)
+    
     prompt = f"""
-    As a nutrition scientist, analyze this food product and provide a health recommendation:
+    As a PhD food scientist and registered dietitian specializing in nutritional biochemistry, conduct a comprehensive scientific analysis of this food product using evidence-based nutritional science principles.
 
-    Nutrition Facts: {json.dumps(structured_data.get('nutrition_facts', {}), indent=2)}
-    Ingredients: {', '.join(structured_data.get('ingredients', []))}
-
-    Provide:
-    1. Overall recommendation: SAFE (good choice), MODERATE (okay in moderation), or AVOID (nutritional concerns)
-    2. 2-3 sentence summary explaining your reasoning
-    3. Top 3 specific health concerns or benefits
-    4. 2 practical tips for consumers
-
-    Base your analysis on current nutritional science and FDA guidelines.
+    PRODUCT NUTRITIONAL PROFILE:
+    Serving Size: {serving_size}
+    Calories: {calories}
+    Total Fat: {total_fat}g | Saturated Fat: {saturated_fat}g
+    Sodium: {sodium}mg | Total Carbs: {total_carbs}g
+    Dietary Fiber: {fiber}g | Total Sugars: {sugars}g | Protein: {protein}g
+    
+    COMPLETE NUTRITION DATA:
+    {json.dumps(nutrition_facts, indent=2)}
+    
+    INGREDIENT LIST: {', '.join(ingredients[:20])}
+    
+    PERFORM DETAILED SCIENTIFIC ANALYSIS:
+    
+    1. NUTRIENT DENSITY EVALUATION:
+    - Calculate nutrient density score (essential nutrients per 100 kcal)
+    - Analyze macronutrient distribution vs. Acceptable Macronutrient Distribution Ranges (AMDR)
+    - Assess micronutrient contributions to Daily Value requirements
+    - Compare to USDA Dietary Guidelines and WHO recommendations
+    
+    2. BIOCHEMICAL IMPACT ASSESSMENT:
+    - Glycemic response prediction based on carbohydrate profile and fiber content
+    - Lipid metabolism implications from fat composition
+    - Protein quality assessment (amino acid completeness if determinable)
+    - Sodium impact on blood pressure and cardiovascular health
+    
+    3. NOVA FOOD CLASSIFICATION & PROCESSING ANALYSIS:
+    - Classify product using NOVA system (unprocessed, processed culinary, processed, ultra-processed)
+    - Identify ultra-processed ingredients and additives with health implications
+    - Analyze preservation methods and their nutritional impact
+    - Evaluate artificial additives, colors, flavors, and their safety profiles
+    
+    4. PATHOPHYSIOLOGICAL CONSIDERATIONS:
+    - Cardiovascular disease risk factors (saturated fat, trans fat, sodium levels)
+    - Diabetes/metabolic syndrome implications (sugar content, refined carbs, fiber)
+    - Inflammation potential (omega-6/omega-3 ratios if applicable, processed ingredients)
+    - Digestive health impact (fiber content, prebiotic potential, artificial ingredients)
+    
+    5. POPULATION-SPECIFIC RECOMMENDATIONS:
+    - Suitability for children, adults, elderly populations
+    - Considerations for diabetes, hypertension, cardiovascular disease
+    - Athletic/active lifestyle compatibility
+    - Weight management implications
+    
+    6. SCIENTIFIC EVIDENCE & REGULATORY COMPLIANCE:
+    - Reference peer-reviewed nutritional research supporting analysis
+    - FDA/USDA regulatory compliance assessment
+    - Comparison to dietary pattern recommendations (Mediterranean, DASH, etc.)
+    - Long-term epidemiological health outcomes from similar food patterns
+    
+    7. QUANTITATIVE HEALTH SCORE: Rate 1-100 (100=optimal nutrition)
+    
+    8. EVIDENCE-BASED RECOMMENDATIONS:
+    - Optimal consumption frequency and portion size
+    - Synergistic food pairings to enhance nutritional value
+    - Healthier product alternatives with specific improvements needed
+    - Meal planning context for optimal health benefits
+    
+    REQUIRED OUTPUT FORMAT:
+    Structure your response with clear scientific headings and quantitative data where possible. Include specific nutritional biochemistry terminology. Reference established nutritional guidelines and research. Provide actionable, evidence-based recommendations suitable for both healthcare professionals and informed consumers.
+    
+    Focus on delivering the most comprehensive, scientifically rigorous nutritional analysis possible.
     """
 
     try:
+        logger.info(f"Making OpenRouter API call with model: {OPENROUTER_MODEL}")
         response = await or_client.chat.completions.create(
             model=OPENROUTER_MODEL,
             messages=[
-                {"role": "system", "content": "You are a nutrition scientist providing concise, evidence-based recommendations."},
+                {"role": "system", "content": "You are a PhD-level food scientist and registered dietitian with 15+ years of experience in nutritional biochemistry, food technology, and public health nutrition. You specialize in evidence-based nutritional analysis, NOVA food classification, and pathophysiological impacts of food consumption. Provide comprehensive, quantitative, scientifically rigorous analysis with specific references to nutritional guidelines and research where applicable."},
                 {"role": "user", "content": prompt.strip()},
             ],
-            max_tokens=300,
-            temperature=0.2,
+            max_tokens=2000,  # Significantly increased for comprehensive analysis
+            temperature=0.1,
         )
+        logger.info("OpenRouter API call successful")
 
         ai_text = response.choices[0].message.content.strip()
 
-        # Parse AI response (simplified parsing)
+        # Parse AI response into structured format
         level = "moderate"  # default
-        if "SAFE" in ai_text:
-            level = "safe"
-        elif "AVOID" in ai_text:
+        if any(word in ai_text.upper() for word in ["EXCELLENT", "GOOD"]):
+            level = "good"
+        elif any(word in ai_text.upper() for word in ["POOR", "AVOID"]):
             level = "avoid"
+        elif "MODERATE" in ai_text.upper():
+            level = "moderate"
 
+        # Extract key insights from AI response
+        lines = ai_text.split('\n')
+        insights = []
+        tips = []
+        concerns = []
+        
+        for line in lines:
+            line = line.strip()
+            if line and len(line) > 10:
+                if any(word in line.lower() for word in ['benefit', 'positive', 'good', 'healthy']):
+                    insights.append(line)
+                elif any(word in line.lower() for word in ['concern', 'risk', 'avoid', 'harmful']):
+                    concerns.append(line)
+                elif any(word in line.lower() for word in ['recommend', 'suggest', 'should', 'consider']):
+                    tips.append(line)
+        
         return {
             "level": level,
-            "summary": ai_text[:200],  # First part as summary
-            "reasons": ["AI-generated comprehensive analysis"],
-            "tips": ["Follow AI recommendations above"],
+            "summary": ai_text[:300] if len(ai_text) > 300 else ai_text,
+            "reasons": concerns[:3] if concerns else ["AI analysis completed"],
+            "tips": tips[:2] if tips else ["Consume in moderation", "Consider healthier alternatives"],
+            "insights": insights[:3] if insights else [],
             "aiAnalysis": ai_text,
         }
 
     except Exception as e:
-        print(f"AI health recommendation error: {e}")
+        logger.error(f"AI health recommendation error: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return None
 
 async def get_nutrition_insights(nutrition_facts: Dict[str, Any]) -> List[Dict[str, str]]:

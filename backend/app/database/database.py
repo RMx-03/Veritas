@@ -33,25 +33,64 @@ async def save_analysis_result(analysis_id: str, analysis_data: Dict[str, Any], 
             "id": analysis_id,
             "filename": filename or "unknown",
             "analysis_data": analysis_data,
-            "nutrition_facts": analysis_data.get("nutritionFacts", {}),
-            "overall_score": analysis_data.get("overallScore", 0),
-            "health_recommendation": analysis_data.get("healthRecommendation", {}),
+            "nutrition_facts": analysis_data.get("nutrition_facts", {}),
+            "overall_score": analysis_data.get("health_score", {}).get("score", 0),
+            "health_recommendation": analysis_data.get("recommendations", []),
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
         
         # Insert into database
-        result = supabase.table("analysis_results").insert(db_data).execute()
-        
-        if result.data:
-            print(f"Analysis {analysis_id} saved successfully")
-            return True
-        else:
-            print(f"Failed to save analysis {analysis_id}")
-            return False
+        try:
+            result = supabase.table("analysis_results").insert(db_data).execute()
+            
+            if result.data:
+                print(f"Analysis {analysis_id} saved successfully")
+                return True
+            else:
+                print(f"Failed to save analysis {analysis_id}")
+                return False
+        except Exception as db_error:
+            # Fallback to local storage if database table doesn't exist
+            print(f"Database save failed, using local storage: {db_error}")
+            return save_analysis_local(analysis_id, analysis_data, filename)
             
     except Exception as e:
         print(f"Database save error: {e}")
+        return False
+
+def save_analysis_local(analysis_id: str, analysis_data: Dict[str, Any], filename: str = "") -> bool:
+    """
+    Fallback: Save analysis to local JSON file when database is unavailable
+    """
+    try:
+        import json
+        import os
+        from datetime import datetime
+        
+        # Create local storage directory
+        storage_dir = "local_analysis_storage"
+        os.makedirs(storage_dir, exist_ok=True)
+        
+        # Prepare data for local storage
+        local_data = {
+            "analysis_id": analysis_id,
+            "filename": filename,
+            "analysis_data": analysis_data,
+            "created_at": datetime.utcnow().isoformat(),
+            "storage_type": "local_fallback"
+        }
+        
+        # Save to JSON file
+        file_path = os.path.join(storage_dir, f"{analysis_id}.json")
+        with open(file_path, 'w') as f:
+            json.dump(local_data, f, indent=2)
+        
+        print(f"Analysis {analysis_id} saved locally to {file_path}")
+        return True
+        
+    except Exception as e:
+        print(f"Local storage save error: {e}")
         return False
 
 async def get_analysis_history(limit: int = 10) -> List[Dict[str, Any]]:

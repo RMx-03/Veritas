@@ -127,3 +127,22 @@ temp_uploads/
 .idea/
 *.swp
 *.swo
+
+# Veritas specific
+# OCR model cache
+.cache/
+model_cache/
+
+# Analysis results cache
+analysis_cache/
+
+# Large ML models (if downloaded locally)
+models/
+*.pkl
+*.bin
+*.safetensors
+
+# API test outputs
+test_output/
+*.jpg.analyzed
+*.png.analyzed
