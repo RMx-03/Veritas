@@ -22,6 +22,8 @@ OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/ap
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1")
 OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL")
 OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME")
+# OCR configuration (used for processing notes)
+OCR_ENGINE = os.getenv("OCR_ENGINE", "advanced")
 
 # Initialize OpenRouter client
 or_client: Optional[AsyncOpenAI] = None
@@ -46,6 +48,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
     Comprehensive nutrition analysis pipeline with scientific insights
     """
     logger.info("Starting comprehensive food science analysis")
+    start_time = asyncio.get_event_loop().time()
     
     # Extract basic info
     nutrition_facts = structured_data.get('nutrition_facts', {})
@@ -71,7 +74,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
         ]
         
         results = await asyncio.gather(*additional_tasks, return_exceptions=True)
-        claim_verification = results[0] if not isinstance(results[0], Exception) else {"status": "error", "verified_claims": [], "warnings": []}
+        claim_verification = results[0] if not isinstance(results[0], Exception) else []
         ai_recommendation = results[1] if not isinstance(results[1], Exception) else None
         
         # Log AI recommendation result
@@ -82,6 +85,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
             logger.warning("AI recommendation failed or returned None")
         
         # Compile comprehensive analysis results with scientific insights - structured for frontend
+        elapsed = asyncio.get_event_loop().time() - start_time
         analysis_result = {
             "nutrition_facts": nutrition_facts,
             "scientific_analysis": {
@@ -110,7 +114,10 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                 "data_completeness": len(nutrition_facts) / 10.0 * 100,
                 "analysis_version": "v3.0_scientific",
                 "nova_classification": scientific_analysis.get('scientific_analysis', {}).get('nova_classification', 4),
-                "nutrient_density": scientific_analysis.get('scientific_analysis', {}).get('nutrient_density_score', 0)
+                "nutrient_density": scientific_analysis.get('scientific_analysis', {}).get('nutrient_density_score', 0),
+                "analysis_time": round(elapsed, 2),
+                "ocr_engine": OCR_ENGINE,
+                "ai_model": OPENROUTER_MODEL if or_client else "disabled"
             }
         }
         
@@ -157,6 +164,8 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
             if len(ingredients) > 15: score -= 10
             score = max(0, min(100, score))
             
+            elapsed_fallback = asyncio.get_event_loop().time() - start_time
+            fallback_claims = await verify_health_claims(claims, nutrition_facts)
             return {
                 "nutrition_facts": nutrition_facts,
                 "ingredients_analysis": ingredient_analysis,
@@ -167,12 +176,16 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                 },
                 "key_insights": key_insights,
                 "recommendations": ["Consume in moderation", "Consider healthier alternatives"],
+                "claim_verification": fallback_claims,
                 "error": "Scientific analysis failed - using enhanced fallback",
                 "analysis_timestamp": asyncio.get_event_loop().time(),
                 "processing_notes": {
                     "analysis_type": "enhanced_fallback",
                     "data_completeness": len(nutrition_facts) / 10.0 * 100,
-                    "ocr_confidence": "medium"
+                    "ocr_confidence": "medium",
+                    "analysis_time": round(elapsed_fallback, 2),
+                    "ocr_engine": OCR_ENGINE,
+                    "ai_model": OPENROUTER_MODEL if or_client else "disabled"
                 }
             }
         except Exception as fallback_error:
@@ -214,9 +227,16 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
         "source": "Internal analysis"
     }
     
+    # Helper getters for common key variants
+    def _get_val(d: Dict[str, Any], keys: List[str], default: float = 0):
+        for k in keys:
+            if k in d and d[k] is not None:
+                return d[k]
+        return default
+
     # Fat-related claims
     if "fat free" in claim_lower or "0g fat" in claim_lower:
-        fat = nutrition_facts.get("fat", 0)
+        fat = _get_val(nutrition_facts, ["fat", "total_fat", "totalFat"], 0)
         if fat <= 0.5:
             verification.update({
                 "status": "verified",
@@ -229,7 +249,7 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
             })
     
     elif "low fat" in claim_lower:
-        fat = nutrition_facts.get("fat", 0)
+        fat = _get_val(nutrition_facts, ["fat", "total_fat", "totalFat"], 0)
         if fat <= 3:
             verification.update({
                 "status": "verified",
@@ -243,7 +263,7 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
     
     # Sugar-related claims
     elif "sugar free" in claim_lower or "no sugar" in claim_lower:
-        sugar = nutrition_facts.get("sugar", 0)
+        sugar = _get_val(nutrition_facts, ["sugar", "sugars", "total_sugars", "totalSugars", "totalSugar"], 0)
         if sugar <= 0.5:
             verification.update({
                 "status": "verified",
@@ -257,7 +277,7 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
     
     # Sodium claims
     elif "low sodium" in claim_lower:
-        sodium = nutrition_facts.get("sodium", 0)
+        sodium = _get_val(nutrition_facts, ["sodium", "sodium_mg", "salt"], 0)
         if sodium <= 140:
             verification.update({
                 "status": "verified",
@@ -271,7 +291,7 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
     
     # High fiber claims
     elif "high fiber" in claim_lower:
-        fiber = nutrition_facts.get("fiber", 0)
+        fiber = _get_val(nutrition_facts, ["fiber", "dietary_fiber", "dietaryFiber"], 0)
         if fiber >= 5:
             verification.update({
                 "status": "verified",
