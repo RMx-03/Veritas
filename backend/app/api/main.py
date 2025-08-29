@@ -6,6 +6,10 @@ import tempfile
 import uuid
 from datetime import datetime
 from dotenv import load_dotenv
+# New imports for warmup/background tasks
+import asyncio
+import logging
+from fastapi import BackgroundTasks
 
 # Ensure environment variables are loaded before importing modules that read them
 load_dotenv()
@@ -30,6 +34,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---- Warmup configuration & task (pre-download OCR models) ----
+# Helps avoid first-request timeouts on platforms like Render where EasyOCR/PaddleOCR
+# download weights on first use.
+WARMUP_ON_STARTUP = os.getenv("WARMUP_ON_STARTUP", "true").lower() == "true"
+WARMUP_ENGINES = [e.strip() for e in os.getenv("WARMUP_ENGINES", "easyocr,paddle").split(",") if e.strip()]
+logger = logging.getLogger("uvicorn.error")
+
+async def warmup_ocr_models():
+    logger.info("[WARMUP] Starting OCR warmup")
+    try:
+        if "easyocr" in WARMUP_ENGINES:
+            try:
+                import easyocr  # type: ignore
+                _ = easyocr.Reader(['en'], gpu=False)
+                logger.info("[WARMUP] EasyOCR reader initialized")
+            except Exception as e:
+                logger.warning(f"[WARMUP] EasyOCR initialization failed: {e}")
+        if "paddle" in WARMUP_ENGINES:
+            try:
+                from paddleocr import PaddleOCR  # type: ignore
+                _ = PaddleOCR(use_angle_cls=True, lang='en')
+                logger.info("[WARMUP] PaddleOCR initialized")
+            except Exception as e:
+                logger.warning(f"[WARMUP] PaddleOCR initialization failed: {e}")
+        logger.info("[WARMUP] OCR warmup complete")
+    except Exception as e:
+        logger.error(f"[WARMUP] Unexpected warmup error: {e}")
+
+@app.on_event("startup")
+async def _trigger_warmup_on_startup():
+    if WARMUP_ON_STARTUP:
+        # Launch warmup in background to avoid blocking server startup/health checks
+        asyncio.create_task(warmup_ocr_models())
+
 @app.get("/")
 async def root():
     return {"message": "Veritas API - Pocket Nutrition Scientist", "version": "1.0.0"}
@@ -37,6 +75,15 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+@app.post("/warmup")
+async def manual_warmup(background_tasks: BackgroundTasks):
+    """
+    Trigger OCR model warmup asynchronously.
+    Returns immediately; check logs to track progress.
+    """
+    background_tasks.add_task(warmup_ocr_models)
+    return {"started": True, "engines": WARMUP_ENGINES}
 
 @app.post("/analyze")
 async def analyze_food_label(image: UploadFile = File(...)):
