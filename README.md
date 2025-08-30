@@ -7,7 +7,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 ## Features
 
 - ** Cloud-only OCR & Lookup** - OpenFoodFacts lookup → HF Inference OCR (DocTR/TrOCR)
-- ** AI Analysis** - Verify health claims using OpenRouter (DeepSeek R1)
+- ** AI Analysis** - Verify health claims using Groq (deepseek-r1-distill-llama-70b)
 - ** Nutrition Insights** - Comprehensive nutritional breakdown with charts
 - ** Ingredient Warnings** - Identify harmful ingredients and allergens
 - ** Health Recommendations** - Get personalized safety ratings
@@ -24,7 +24,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 **Backend:**
 - FastAPI (Python)
 - OpenFoodFacts API first, then Hugging Face Inference OCR (DocTR/TrOCR)
-- OpenRouter (DeepSeek R1) for AI reasoning
+- Groq (deepseek-r1-distill-llama-70b) for AI reasoning
 - Optional DocVQA (LayoutLM family) for layout-aware refinement
 
 **Database & APIs:**
@@ -39,7 +39,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 2. **Python** (3.8+)
 3. (Optional) **Hugging Face** account and API key (for OCR via HF Inference)
 4. API keys for:
-   - OpenRouter (uses your chosen model via OpenRouter)
+   - Groq (OpenAI-compatible API)
    - HuggingFace (free tier: 30k tokens/month)
    - Supabase project
 
@@ -109,8 +109,8 @@ Visit: `http://localhost:3000`
 ## API Keys Setup
 
 ### Required:
-1. **OpenRouter API** - [Get API key](https://openrouter.ai/)
-   - Used for AI claim verification and recommendations (DeepSeek R1)
+1. **Groq API** - [Get API key](https://console.groq.com/)
+   - Used for AI claim verification and recommendations (deepseek-r1-distill-llama-70b)
 
 2. **Supabase** - [Create free project](https://supabase.com/)
    - 500MB database, 500k API calls/month
@@ -194,7 +194,7 @@ deta new --python
 
 | Service | Notes |
 |---------|-------|
-| OpenRouter | Usage-based pricing; choose models like DeepSeek R1 via OpenRouter |
+| Groq | Usage-based pricing; OpenAI-compatible models (e.g., deepseek-r1-distill-llama-70b) |
 | HuggingFace | 30k tokens free for Inference API (varies) |
 | Supabase | 500MB DB, 500k calls free tier |
 | Vercel | 100GB bandwidth free tier |

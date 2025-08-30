@@ -53,14 +53,11 @@ Required environment variables:
 # AI Services (Required)
 HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 
-# OpenRouter (LLM via Chat Completions)
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-# Pick a model from https://openrouter.ai/models (examples below)
-OPENROUTER_MODEL=deepseek/deepseek-r1
-# Optional: used for HTTP Referer and X-Title headers (best practice)
-OPENROUTER_SITE_URL=http://localhost:8000
-OPENROUTER_APP_NAME=Veritas Local
+# Groq (LLM via OpenAI-compatible API)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+# Default model compatible with current analyzer
+GROQ_MODEL=deepseek-r1-distill-llama-70b
 
 # Database (Required)
 SUPABASE_URL=your_supabase_project_url
@@ -102,10 +99,10 @@ VITE_API_URL=http://localhost:8000
 
 ### API Keys Setup
 
-**1. OpenRouter API (Required)**
-- Visit [openrouter.ai](https://openrouter.ai)
+**1. Groq API (Required)**
+- Visit [console.groq.com](https://console.groq.com/)
 - Sign up and generate an API key
-- Add to backend `.env` file
+- Add to backend `.env` file (GROQ_API_KEY)
 
 **2. HuggingFace API (Optional)**
 - Visit [huggingface.co](https://huggingface.co)
@@ -193,7 +190,7 @@ curl http://localhost:8000/
 - Implement caching for repeated analyses
 
 **2. API Rate Limits:**
-- Monitor OpenRouter usage (model tokens/costs)
+- Monitor Groq usage (model tokens/costs)
 - Implement request queuing
 - Cache API responses when possible
 

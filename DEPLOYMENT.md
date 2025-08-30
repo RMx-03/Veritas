@@ -64,11 +64,9 @@ deta new --python veritas-api
 **3. Configure Environment Variables**
 ```bash
 # Set environment variables in Deta
-deta update -e OPENROUTER_API_KEY="your_openrouter_key"
-deta update -e OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
-deta update -e OPENROUTER_MODEL="deepseek/deepseek-r1"
-deta update -e OPENROUTER_SITE_URL="https://your-backend.deta.dev"
-deta update -e OPENROUTER_APP_NAME="Veritas API"
+deta update -e GROQ_API_KEY="your_groq_key"
+deta update -e GROQ_BASE_URL="https://api.groq.com/openai/v1"
+deta update -e GROQ_MODEL="deepseek-r1-distill-llama-70b"
 deta update -e HUGGINGFACE_API_KEY="your_hf_key_here"
 deta update -e DOCTR_API_MODEL="microsoft/trocr-small-printed"
 deta update -e SUPABASE_URL="your_supabase_url"
@@ -127,11 +125,9 @@ VITE_API_URL=https://your-backend.deta.dev
 
 **Backend (Deta Environment):**
 ```env
-OPENROUTER_API_KEY=your_openrouter_key
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-OPENROUTER_MODEL=deepseek/deepseek-r1
-OPENROUTER_SITE_URL=https://your-backend.deta.dev
-OPENROUTER_APP_NAME=Veritas API
+GROQ_API_KEY=your_groq_key
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+GROQ_MODEL=deepseek-r1-distill-llama-70b
 HUGGINGFACE_API_KEY=your_hf_key
 DOCTR_API_MODEL=microsoft/trocr-small-printed
 SUPABASE_URL=your_supabase_url
@@ -178,7 +174,7 @@ deta logs
 
 **2. Performance Monitoring**
 - Monitor API response times
-- Track OpenRouter usage (model tokens/costs)
+- Track Groq usage (model tokens/costs)
 - Monitor Supabase database usage
 
 **3. Regular Updates**
@@ -198,13 +194,13 @@ deta deploy    # Backend
 - Vercel: 100GB bandwidth/month
 - Deta: No strict limits on free tier
 - Supabase: 500MB storage, 500k API calls/month
-- OpenRouter: usage-based (depends on model)
+- Groq: usage-based (depends on model)
 
 **Upgrade Paths:**
 - Vercel Pro: $20/month for better performance
 - Deta Pro: Custom pricing for dedicated resources
 - Supabase Pro: $25/month for 8GB storage
-- OpenRouter: Usage-based pricing
+- Groq: Usage-based pricing
 
 ### Backup & Recovery
 

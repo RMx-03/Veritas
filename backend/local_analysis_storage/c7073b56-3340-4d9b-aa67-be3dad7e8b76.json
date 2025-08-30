@@ -1,0 +1,107 @@
+{
+  "analysis_id": "c7073b56-3340-4d9b-aa67-be3dad7e8b76",
+  "filename": "1000_F_564709999_vyTCh5imxsYjPQjgyVBgsWymQKvTgFOW.jpg",
+  "analysis_data": {
+    "analysisId": "c7073b56-3340-4d9b-aa67-be3dad7e8b76",
+    "timestamp": "2025-08-30T21:12:23.683098",
+    "extractedText": "### DIRECTION:\nGently squeeze drops of Grape Seed Oil from the dropper into your palm. Rub palms togeth- er and gently apply to damp- ened skin, hair, and/or scalp.\n\n\u2b50\u2b50\u2b50\n\nPlease always do a patch test to ensure no allergies exist to this product.\n\n### INGREDIENTS:\nCold Pressed Organic Labenden Oil, Organic Tea Tree Oil, Or- ganic Coconut Oil, 100% Natur- al\n\n### DISTRIBUTED BY:\nCompany Name\nLocation here, city-12345, Dala\nwww.yourwebsite.place\n\n### Logo\n\n100% Pure & Natural\n\n### Coconut Oil\n\nOrganic Essential Oil\nCold Pressed Essential Oil Blend\n\n2 oz | 60 ml\n\nABC-123 456 789",
+    "nutrition_facts": {},
+    "scientific_analysis": {
+      "nutrient_density_score": 0.0,
+      "processing_level": "processed",
+      "nova_classification": 1,
+      "macronutrient_balance": {
+        "protein_percent": 0,
+        "carb_percent": 0,
+        "fat_percent": 0,
+        "balance_score": 0
+      },
+      "additive_risk_score": 0,
+      "ingredient_complexity_index": 1.2,
+      "evidence_based_insights": {
+        "key_findings": [
+          "Low nutrient density (0.0) suggests limited nutritional benefits",
+          "NOVA Group 1 classification indicates unprocessed or minimally processed whole food"
+        ],
+        "health_benefits": [
+          "Whole food with minimal processing retains natural nutritional profile",
+          "Low sodium content (0mg) supports cardiovascular health",
+          "Low sugar content supports stable blood glucose levels"
+        ],
+        "health_concerns": [
+          "Poor nutritional value relative to calorie content - mostly empty calories",
+          "Low protein content - consider pairing with protein-rich foods",
+          "Very low fiber content provides minimal digestive and metabolic benefits"
+        ],
+        "consumption_recommendations": [
+          "Consume occasionally - limit to 2-3 times per week maximum",
+          "Consider healthier alternatives when possible"
+        ]
+      }
+    },
+    "health_score": {
+      "score": 50,
+      "level": "moderate",
+      "factors": [
+        "Low nutrient density (0.0) suggests limited nutritional benefits",
+        "NOVA Group 1 classification indicates unprocessed or minimally processed whole food"
+      ]
+    },
+    "health_impact_assessment": {
+      "cardiovascular": "LOW RISK",
+      "metabolic": "FAVORABLE",
+      "digestive": "NEUTRAL",
+      "inflammatory": "NEUTRAL"
+    },
+    "ingredients_analysis": {},
+    "claim_verification": [
+      {
+        "claim": "Organic",
+        "status": "unknown",
+        "explanation": "Unable to verify this claim.",
+        "source": "Internal analysis"
+      },
+      {
+        "claim": "Natural",
+        "status": "unknown",
+        "explanation": "Unable to verify this claim.",
+        "source": "Internal analysis"
+      }
+    ],
+    "key_insights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 1 classification indicates unprocessed or minimally processed whole food"
+    ],
+    "recommendations": [
+      "Consume occasionally - limit to 2-3 times per week maximum",
+      "Consider healthier alternatives when possible"
+    ],
+    "ai_recommendation": null,
+    "overall_score": 50,
+    "processedImage": null,
+    "nutritionFacts": {},
+    "claimVerification": [
+      {
+        "claim": "Organic",
+        "status": "unknown",
+        "explanation": "Unable to verify this claim.",
+        "source": "Internal analysis"
+      },
+      {
+        "claim": "Natural",
+        "status": "unknown",
+        "explanation": "Unable to verify this claim.",
+        "source": "Internal analysis"
+      }
+    ],
+    "ingredientAnalysis": {},
+    "healthRecommendation": {},
+    "overallScore": 50,
+    "keyInsights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 1 classification indicates unprocessed or minimally processed whole food"
+    ]
+  },
+  "created_at": "2025-08-30T21:12:24.237612Z",
+  "storage_type": "local_fallback"
+}

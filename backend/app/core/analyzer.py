@@ -16,28 +16,20 @@ logger = logging.getLogger(__name__)
 # API Configuration
 USDA_API_KEY = os.getenv("USDA_API_KEY")  # Optional, USDA has public endpoints
 
-# OpenRouter configuration
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1")
-OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL")
-OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME")
+# Groq configuration (OpenAI-compatible API)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "deepseek-r1-distill-llama-70b")
 # OCR configuration (cloud-only, DocTR via HF Inference API)
 DOCTR_API_MODEL = os.getenv("DOCTR_API_MODEL", "microsoft/trocr-small-printed")
 OCR_ENGINE_DESC = "DocTR API"
 
-# Initialize OpenRouter client
-or_client: Optional[AsyncOpenAI] = None
-if OPENROUTER_API_KEY:
-    default_headers = {}
-    if OPENROUTER_SITE_URL:
-        default_headers["HTTP-Referer"] = OPENROUTER_SITE_URL
-    if OPENROUTER_APP_NAME:
-        default_headers["X-Title"] = OPENROUTER_APP_NAME
-    or_client = AsyncOpenAI(
-        base_url=OPENROUTER_BASE_URL,
-        api_key=OPENROUTER_API_KEY,
-        default_headers=default_headers or None
+# Initialize Groq client (via OpenAI SDK with Groq base URL)
+groq_client: Optional[AsyncOpenAI] = None
+if GROQ_API_KEY:
+    groq_client = AsyncOpenAI(
+        base_url=GROQ_BASE_URL,
+        api_key=GROQ_API_KEY,
     )
 
 # Knowledge base URLs
@@ -120,7 +112,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                 "analysis_time": round(elapsed, 2),
                 "ocr_engine": OCR_ENGINE_DESC,
                 "ocr_model": DOCTR_API_MODEL,
-                "ai_model": OPENROUTER_MODEL if or_client else "disabled"
+                "ai_model": GROQ_MODEL if groq_client else "disabled"
             }
         }
         
@@ -172,7 +164,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
             # Try to still get AI recommendation in fallback path
             ai_rec = None
             try:
-                if or_client:
+                if groq_client:
                     ai_rec = await get_ai_health_recommendation(structured_data, raw_text)
             except Exception as ai_err:
                 logger.warning(f"AI recommendation in fallback failed: {ai_err}")
@@ -199,7 +191,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                     "analysis_time": round(elapsed_fallback, 2),
                     "ocr_engine": OCR_ENGINE_DESC,
                     "ocr_model": DOCTR_API_MODEL,
-                    "ai_model": OPENROUTER_MODEL if or_client else "disabled"
+                    "ai_model": GROQ_MODEL if groq_client else "disabled"
                 }
             }
         except Exception as fallback_error:
@@ -317,8 +309,8 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
                 "explanation": f"Misleading: Contains {fiber}g fiber, which is below FDA criteria for 'high fiber' (≥5g per serving)."
             })
     
-    # Use AI for complex claims if OpenRouter is available
-    elif or_client:
+    # Use AI for complex claims if Groq is available
+    elif groq_client:
         try:
             ai_verification = await get_ai_claim_verification(claim, nutrition_facts)
             verification.update(ai_verification)
@@ -329,9 +321,9 @@ async def verify_single_claim(claim: str, nutrition_facts: Dict[str, Any]) -> Di
 
 async def get_ai_claim_verification(claim: str, nutrition_facts: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Use OpenRouter (Chat Completions) to verify complex health claims
+    Use Groq (OpenAI-compatible Chat Completions) to verify complex health claims
     """
-    if not or_client:
+    if not groq_client:
         return {"status": "unknown", "explanation": "AI verification not available"}
 
     prompt = f"""
@@ -349,8 +341,8 @@ async def get_ai_claim_verification(claim: str, nutrition_facts: Dict[str, Any])
     """
 
     try:
-        response = await or_client.chat.completions.create(
-            model=OPENROUTER_MODEL,
+        response = await groq_client.chat.completions.create(
+            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": "You are a nutrition scientist who verifies product claims against nutrition facts and FDA guidelines."},
                 {"role": "user", "content": prompt.strip()},
@@ -374,11 +366,11 @@ async def get_ai_claim_verification(claim: str, nutrition_facts: Dict[str, Any])
         return {
             "status": status,
             "explanation": ai_response,
-            "source": "AI analysis (OpenRouter)",
+            "source": "AI analysis (Groq)",
         }
 
     except Exception as e:
-        print(f"[ANALYZER] OpenRouter error: {e}")
+        print(f"[ANALYZER] Groq error: {e}")
         return {"status": "unknown", "explanation": "AI analysis failed"}
 
 async def analyze_ingredients(ingredients: List[str]) -> Dict[str, Any]:
@@ -550,7 +542,7 @@ async def generate_health_recommendation(structured_data: Dict[str, Any], raw_te
         summary = "This product has several nutritional red flags and should be consumed sparingly."
     
     # Use AI for more sophisticated analysis if available
-    if or_client and len(raw_text) > 50:
+    if groq_client and len(raw_text) > 50:
         try:
             ai_recommendation = await get_ai_health_recommendation(structured_data, raw_text)
             if ai_recommendation:
@@ -568,9 +560,9 @@ async def generate_health_recommendation(structured_data: Dict[str, Any], raw_te
 
 async def get_ai_health_recommendation(structured_data: Dict[str, Any], raw_text: str) -> Optional[Dict[str, Any]]:
     """
-    Generate comprehensive AI-powered food science analysis via OpenRouter
+    Generate comprehensive AI-powered food science analysis via Groq
     """
-    if not or_client:
+    if not groq_client:
         return None
 
     nutrition_facts = structured_data.get('nutrition_facts', {})
@@ -655,9 +647,9 @@ async def get_ai_health_recommendation(structured_data: Dict[str, Any], raw_text
     """
 
     try:
-        logger.info(f"Making OpenRouter API call with model: {OPENROUTER_MODEL}")
-        response = await or_client.chat.completions.create(
-            model=OPENROUTER_MODEL,
+        logger.info(f"Making Groq API call with model: {GROQ_MODEL}")
+        response = await groq_client.chat.completions.create(
+            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": "You are a PhD-level food scientist and registered dietitian with 15+ years of experience in nutritional biochemistry, food technology, and public health nutrition. You specialize in evidence-based nutritional analysis, NOVA food classification, and pathophysiological impacts of food consumption. Provide comprehensive, quantitative, scientifically rigorous analysis with specific references to nutritional guidelines and research where applicable."},
                 {"role": "user", "content": prompt.strip()},
@@ -665,7 +657,7 @@ async def get_ai_health_recommendation(structured_data: Dict[str, Any], raw_text
             max_tokens=2000,  # Significantly increased for comprehensive analysis
             temperature=0.1,
         )
-        logger.info("OpenRouter API call successful")
+        logger.info("Groq API call successful")
 
         ai_text = response.choices[0].message.content.strip()
 

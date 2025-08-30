@@ -10,7 +10,7 @@ backend/
 │   ├── api/               # FastAPI routes and endpoints
 │   │   └── main.py        # Main FastAPI application
 │   ├── core/              # Core business logic
-│   │   ├── analyzer.py    # AI nutrition analysis (OpenRouter)
+│   │   ├── analyzer.py    # AI nutrition analysis (Groq)
 │   │   ├── ocr_unified.py # OCR processing pipeline
 │   │   ├── parser_enhanced.py # Nutrition data parsing
 │   │   ├── food_scientist_analyzer.py # Scientific analysis
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Edit .env with your API keys:
-# - OPENROUTER_API_KEY (required)
+# - GROQ_API_KEY (required)
 # - SUPABASE_URL and SUPABASE_ANON_KEY (required)
 # - For OCR choose a cloud provider:
 #   * CLOUD_OCR_PROVIDER=hf and set HUGGINGFACE_API_KEY (DocTR via HF Inference API), or
@@ -92,11 +92,13 @@ pytest --cov=app tests/
 Key environment variables:
 
 ### Required
-- `OPENROUTER_API_KEY` - For AI analysis
+- `GROQ_API_KEY` - For AI analysis via Groq (OpenAI-compatible)
 - `SUPABASE_URL` - Database URL
 - `SUPABASE_ANON_KEY` - Database access key
 
 ### Optional
+- `GROQ_BASE_URL` - Groq OpenAI-compatible base URL (default: https://api.groq.com/openai/v1)
+- `GROQ_MODEL` - Groq model id (default: deepseek-r1-distill-llama-70b)
 - `USDA_API_KEY` - USDA nutrition database access
 - `OPENFOODFACTS_BASE_URL` - Base URL for OpenFoodFacts product endpoint (default: https://world.openfoodfacts.org/api/v0/product/)
 - `CLOUD_OCR_PROVIDER` - `hf` (default) or `mistral`
@@ -150,7 +152,7 @@ curl -X POST "http://localhost:8000/analyze?barcode=737628064502" \
 ## 📁 Module Overview
 
 ### Core Modules
-- **analyzer.py** - Main AI analysis using OpenRouter
+- **analyzer.py** - Main AI analysis using Groq
 - **ocr_unified.py** - Cloud OCR pipeline (OpenFoodFacts + Cloud OCR Provider)
 - **parser_enhanced.py** - Nutrition facts parsing and extraction
 - **food_scientist_analyzer.py** - Scientific nutrition analysis

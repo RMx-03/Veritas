@@ -112,6 +112,13 @@ try:
         masked = ("hf_" + "*" * max(0, len(hf_key) - 6) + hf_key[-4:]) if hf_key.startswith("hf_") else None
         logger.info(f"[CONFIG] HUGGINGFACE_API_KEY present: {bool(hf_key)}" + (f" ({masked})" if masked else ""))
         logger.info(f"[CONFIG] DOCTR_API_MODEL={doctr_model}")
+
+    # Groq AI analysis diagnostics
+    groq_key = os.getenv("GROQ_API_KEY") or ""
+    groq_model = os.getenv("GROQ_MODEL", "deepseek-r1-distill-llama-70b")
+    masked_gk = (groq_key[:3] + "*" * max(0, len(groq_key) - 7) + groq_key[-4:]) if groq_key else None
+    logger.info(f"[CONFIG] GROQ_API_KEY present: {bool(groq_key)}" + (f" ({masked_gk})" if masked_gk else ""))
+    logger.info(f"[CONFIG] GROQ_MODEL={groq_model}")
 except Exception:
     pass
 

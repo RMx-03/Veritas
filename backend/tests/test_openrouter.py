@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test OpenRouter DeepSeek R1 integration
+Test Groq integration (OpenAI-compatible API)
 """
 
 import os
@@ -12,51 +12,45 @@ import pytest
 
 load_dotenv()
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1")
-OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL")
-OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "deepseek-r1-distill-llama-70b")
 
 # Mark as integration and skip by default unless explicitly enabled
 pytestmark = pytest.mark.integration
-RUN_OPENROUTER_TESTS = os.getenv("RUN_OPENROUTER_TESTS", "false").lower() in ("1", "true", "yes", "y")
-if not RUN_OPENROUTER_TESTS:
+RUN_GROQ_TESTS = os.getenv("RUN_GROQ_TESTS", "false").lower() in ("1", "true", "yes", "y")
+if not RUN_GROQ_TESTS:
     pytest.skip(
-        "Skipping OpenRouter integration tests by default. Set RUN_OPENROUTER_TESTS=true to enable.",
+        "Skipping Groq integration tests by default. Set RUN_GROQ_TESTS=true to enable.",
         allow_module_level=True,
     )
 
 @pytest.mark.asyncio
-async def test_openrouter_connection():
-    """Test basic OpenRouter API connection"""
+async def test_groq_connection():
+    """Test basic Groq API connection"""
     
-    if not OPENROUTER_API_KEY:
-        print("❌ OPENROUTER_API_KEY not found in environment")
+    if not GROQ_API_KEY:
+        print("❌ GROQ_API_KEY not found in environment")
         return False
     
-    print(f"✅ OpenRouter API Key: {'*' * (len(OPENROUTER_API_KEY) - 8) + OPENROUTER_API_KEY[-8:]}")
-    print(f"✅ Base URL: {OPENROUTER_BASE_URL}")
-    print(f"✅ Model: {OPENROUTER_MODEL}")
+    print(f"✅ Groq API Key: {'*' * (len(GROQ_API_KEY) - 8) + GROQ_API_KEY[-8:]} ")
+    print(f"✅ Base URL: {GROQ_BASE_URL}")
+    print(f"✅ Model: {GROQ_MODEL}")
     
-    # Setup headers
-    default_headers = {}
-    if OPENROUTER_SITE_URL:
-        default_headers["HTTP-Referer"] = OPENROUTER_SITE_URL
-    if OPENROUTER_APP_NAME:
-        default_headers["X-Title"] = OPENROUTER_APP_NAME
+    # Setup headers (none required for Groq)
+    default_headers = None
     
     try:
         client = AsyncOpenAI(
-            base_url=OPENROUTER_BASE_URL,
-            api_key=OPENROUTER_API_KEY,
+            base_url=GROQ_BASE_URL,
+            api_key=GROQ_API_KEY,
             default_headers=default_headers or None
         )
         
-        print("\n📡 Testing OpenRouter connection...")
+        print("\n📡 Testing Groq connection...")
         
         response = await client.chat.completions.create(
-            model=OPENROUTER_MODEL,
+            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": "You are a helpful food science assistant."},
                 {"role": "user", "content": "Analyze this chocolate cookie nutrition: calories 66, fat 26g. Is this healthy?"},
@@ -66,7 +60,7 @@ async def test_openrouter_connection():
         )
         
         ai_response = response.choices[0].message.content.strip()
-        print(f"✅ OpenRouter API Response:")
+        print(f"✅ Groq API Response:")
         print(f"   Model: {response.model}")
         print(f"   Response length: {len(ai_response)} characters")
         print(f"   Content preview: {ai_response[:100]}...")
@@ -74,7 +68,7 @@ async def test_openrouter_connection():
         return True
         
     except Exception as e:
-        print(f"❌ OpenRouter API Error: {e}")
+        print(f"❌ Groq API Error: {e}")
         return False
 
 @pytest.mark.asyncio
@@ -121,17 +115,17 @@ async def test_nutrition_analysis():
 
 if __name__ == "__main__":
     async def main():
-        print("🧪 Testing Veritas OpenRouter Integration\n")
+        print("🧪 Testing Veritas Groq Integration\n")
         
-        # Test 1: OpenRouter Connection
-        or_working = await test_openrouter_connection()
+        # Test 1: Groq Connection
+        or_working = await test_groq_connection()
         
         # Test 2: Full nutrition analysis
         if or_working:
             analysis_result = await test_nutrition_analysis()
         
         print(f"\n📊 Test Summary:")
-        print(f"   OpenRouter API: {'✅ Working' if or_working else '❌ Failed'}")
+        print(f"   Groq API: {'✅ Working' if or_working else '❌ Failed'}")
         if or_working:
             print(f"   Nutrition Analysis: {'✅ Working' if analysis_result else '❌ Failed'}")
     

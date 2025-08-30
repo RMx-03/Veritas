@@ -30,7 +30,7 @@ def test_analyzer_imports():
     except ImportError as e:
         pytest.skip(f"Analyzer module dependencies not available: {e}")
 
-@pytest.mark.skipif(not os.getenv("OPENROUTER_API_KEY"), reason="No OpenRouter API key")
+@pytest.mark.skipif(not os.getenv("GROQ_API_KEY"), reason="No Groq API key")
 def test_analyzer_with_mock_data():
     """Test analyzer with mock nutrition data"""
     from app.core.analyzer import analyze_nutrition_data

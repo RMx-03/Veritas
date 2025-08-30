@@ -1,0 +1,95 @@
+{
+  "analysis_id": "0152f2d9-75b6-41ea-8ef6-13a339cbcd70",
+  "filename": "1600w-_t0n9Dbjyro.webp",
+  "analysis_data": {
+    "analysisId": "0152f2d9-75b6-41ea-8ef6-13a339cbcd70",
+    "timestamp": "2025-08-30T21:32:20.243047",
+    "extractedText": "# BORCELLE\n\n## CHOCOCHIP COOKIES\n\nIndulge in the rich, decadent pleasure of our chocolate cookies \u2013 a delightful treat for all the chocolate lovers out there!\n\n### INGREDIENTS\n\nbutter; softened, white sugar, brown sugar, eggs, vanilla extract, baking soda, hot water, salt, flour, chocolate chips, chopped walnuts\n\n### EXPIRATION DATE: 26/08/23\n\nSatisfy your sweet cravings with our delicious chocochip cookies\n\nNetto. 500 gr",
+    "nutrition_facts": {},
+    "scientific_analysis": {
+      "nutrient_density_score": 0.0,
+      "processing_level": "processed",
+      "nova_classification": 2,
+      "macronutrient_balance": {
+        "protein_percent": 0,
+        "carb_percent": 0,
+        "fat_percent": 0,
+        "balance_score": 0
+      },
+      "additive_risk_score": 0,
+      "ingredient_complexity_index": 2.4,
+      "evidence_based_insights": {
+        "key_findings": [
+          "Low nutrient density (0.0) suggests limited nutritional benefits",
+          "NOVA Group 2 classification indicates processed culinary ingredients"
+        ],
+        "health_benefits": [
+          "Minimally processed with basic culinary modifications",
+          "Low sodium content (0mg) supports cardiovascular health",
+          "Low sugar content supports stable blood glucose levels"
+        ],
+        "health_concerns": [
+          "Poor nutritional value relative to calorie content - mostly empty calories",
+          "Low protein content - consider pairing with protein-rich foods",
+          "Very low fiber content provides minimal digestive and metabolic benefits"
+        ],
+        "consumption_recommendations": [
+          "Consume occasionally - limit to 2-3 times per week maximum",
+          "Consider healthier alternatives when possible"
+        ]
+      }
+    },
+    "health_score": {
+      "score": 40,
+      "level": "poor",
+      "factors": [
+        "Low nutrient density (0.0) suggests limited nutritional benefits",
+        "NOVA Group 2 classification indicates processed culinary ingredients"
+      ]
+    },
+    "health_impact_assessment": {
+      "cardiovascular": "LOW RISK",
+      "metabolic": "FAVORABLE",
+      "digestive": "NEUTRAL",
+      "inflammatory": "NEUTRAL"
+    },
+    "ingredients_analysis": {},
+    "claim_verification": [
+      {
+        "claim": "Light",
+        "status": "unknown",
+        "explanation": "Unable to verify this claim.",
+        "source": "Internal analysis"
+      }
+    ],
+    "key_insights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 2 classification indicates processed culinary ingredients"
+    ],
+    "recommendations": [
+      "Consume occasionally - limit to 2-3 times per week maximum",
+      "Consider healthier alternatives when possible"
+    ],
+    "ai_recommendation": null,
+    "overall_score": 40,
+    "processedImage": null,
+    "nutritionFacts": {},
+    "claimVerification": [
+      {
+        "claim": "Light",
+        "status": "unknown",
+        "explanation": "Unable to verify this claim.",
+        "source": "Internal analysis"
+      }
+    ],
+    "ingredientAnalysis": {},
+    "healthRecommendation": {},
+    "overallScore": 40,
+    "keyInsights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 2 classification indicates processed culinary ingredients"
+    ]
+  },
+  "created_at": "2025-08-30T21:32:20.904056Z",
+  "storage_type": "local_fallback"
+}
