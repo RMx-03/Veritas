@@ -51,7 +51,7 @@ cp .env.example .env
 # Edit .env with your API keys:
 # - OPENROUTER_API_KEY (required)
 # - SUPABASE_URL and SUPABASE_ANON_KEY (required)
-# - HUGGINGFACE_API_KEY (optional)
+# - HUGGINGFACE_API_KEY (required for OCR via DocTR)
 ```
 
 ### 3. Run the Application
@@ -95,16 +95,13 @@ Key environment variables:
 - `SUPABASE_ANON_KEY` - Database access key
 
 ### Optional
-- `HUGGINGFACE_API_KEY` - Used by the DocTR OCR API tier
 - `USDA_API_KEY` - USDA nutrition database access
-- `OCR_ENGINE` - OCR engine selection (default: advanced)
 - `OPENFOODFACTS_BASE_URL` - Base URL for OpenFoodFacts product endpoint (default: https://world.openfoodfacts.org/api/v0/product/)
 - `DOCTR_API_MODEL` - HF model for OCR via API (default: microsoft/trocr-small-printed)
 - `ALLOWED_ORIGINS` - Comma-separated list of allowed origins for CORS. Use `*` only in development.
 - `MAX_UPLOAD_MB` - Max upload size in MB for `/analyze` (default: 10).
 - `RATE_LIMIT_PER_MINUTE` - Simple per-IP requests/min limit (default: 120).
-- `WARMUP_ON_STARTUP` - Pre-download OCR models on startup to avoid cold starts (`true`/`false`, default: true).
-- `WARMUP_ENGINES` - Comma-separated OCR engines to warm (default: `easyocr`). Add `paddle` to also warm PaddleOCR.
+- `WARMUP_ON_STARTUP` - No-op in cloud-only mode; retained for compatibility/logging (`true`/`false`, default: true).
 
 ## 🛡️ Security & Performance Middleware
 
@@ -116,15 +113,14 @@ The FastAPI app includes production hardening in `app/api/main.py`:
 - **Request ID**: Every response includes `X-Request-ID` for traceability.
 - **Rate limiting**: In-memory per-IP limiter with 60s window, limit from `RATE_LIMIT_PER_MINUTE`.
 - **Upload size limit**: Enforced in `/analyze` using `MAX_UPLOAD_MB`.
-- **Warmup**: `/warmup` endpoint and optional startup warmup (`WARMUP_ON_STARTUP`, `WARMUP_ENGINES`) for OCR weights. Default warms EasyOCR only to minimize memory; include `paddle` explicitly if needed.
+- **Warmup**: `/warmup` endpoint exists but is a no-op in cloud-only mode (`WARMUP_ON_STARTUP` retained for compatibility).
 
-## 🧠 Multi-tier OCR Pipeline
+## 🧠 Multi-tier OCR Pipeline (Cloud-only)
 
-The OCR/data retrieval now follows a low-memory, API-first chain:
+The OCR/data retrieval now follows an API-first, cloud-only chain:
 
 1. OpenFoodFacts lookup (if `barcode` or `product_name` provided) – returns structured data and skips OCR when found.
 2. Hugging Face Inference API (DocTR) – uses `HUGGINGFACE_API_KEY` and `DOCTR_API_MODEL`.
-3. Local EasyOCR fallback – runs on CPU, low footprint.
 
 Each tier logs which method was used and gracefully falls back on errors or rate limits. See `app/core/ocr_unified.py`.
 
@@ -147,7 +143,7 @@ curl -X POST "http://localhost:8000/analyze?barcode=737628064502" \
 
 ### Core Modules
 - **analyzer.py** - Main AI analysis using OpenRouter
-- **ocr_unified.py** - Multi-engine OCR pipeline (PaddleOCR, EasyOCR, Tesseract)
+- **ocr_unified.py** - Cloud OCR pipeline (OpenFoodFacts + DocTR API)
 - **parser_enhanced.py** - Nutrition facts parsing and extraction
 - **food_scientist_analyzer.py** - Scientific nutrition analysis
 - **knowledge_base.py** - External API integrations (USDA, OpenFoodFacts)

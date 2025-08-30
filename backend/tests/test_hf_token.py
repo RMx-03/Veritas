@@ -4,9 +4,19 @@ Test script to verify Hugging Face API token and model access
 """
 import os
 import requests
+import pytest
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Opt-in integration test to avoid network calls by default
+RUN_HF_TESTS = os.getenv("RUN_HF_TESTS", "false").lower() in ("1", "true", "yes", "y")
+pytestmark = pytest.mark.integration
+if not RUN_HF_TESTS:
+    pytest.skip(
+        "Skipping Hugging Face token/model access test by default. Set RUN_HF_TESTS=true to enable.",
+        allow_module_level=True,
+    )
 
 def test_hf_token():
     token = os.getenv('HUGGINGFACE_API_KEY')
@@ -63,4 +73,4 @@ if __name__ == "__main__":
     result = test_hf_token()
     if result:
         print(f"\n🎯 Update your .env file:")
-        print(f"HF_TROCR_MODEL={result}")
+        print(f"DOCTR_API_MODEL={result}")

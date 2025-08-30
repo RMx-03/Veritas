@@ -25,26 +25,9 @@ micros:
           description: "App name sent as X-Title header to OpenRouter"
           default: "Veritas API"
         - name: HUGGINGFACE_API_KEY  
-          description: "HuggingFace API key for OCR (TrOCR/Donut)"
+          description: "HuggingFace API key for OCR (DocTR via Inference API)"
           default: ""
-        - name: OCR_ENGINE
-          description: "OCR engine to use: advanced, easyocr, paddle, or tesseract"
-          default: "advanced"
-        - name: OCR_ENGINE_ADVANCED
-          description: "Advanced OCR pipeline mode: hybrid, easyocr, paddle"
-          default: "hybrid"
-        - name: HF_TROCR_MODEL
-          description: "Hugging Face TrOCR model id"
-          default: "microsoft/trocr-large-printed"
-        - name: HF_DONUT_MODEL
-          description: "Hugging Face Donut model id"
-          default: "naver-clova-ix/donut-base-finetuned-docvqa"
-        - name: USE_LAYOUT_REFINER
-          description: "Use optional LayoutLM DocVQA refinement (true/false)"
-          default: "false"
-        - name: HF_DOCVQA_MODEL
-          description: "HF DocVQA/LayoutLM model id"
-          default: "impira/layoutlm-document-qa"
+        
         - name: SUPABASE_URL
           description: "Supabase project URL"
           default: ""
@@ -72,6 +55,3 @@ micros:
         - name: WARMUP_ON_STARTUP
           description: "Warm up OCR engines on startup (true/false)"
           default: "true"
-        - name: WARMUP_ENGINES
-          description: "Comma-separated engines to warm (easyocr,paddle)"
-          default: "easyocr"

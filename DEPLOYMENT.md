@@ -69,12 +69,8 @@ deta update -e OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
 deta update -e OPENROUTER_MODEL="deepseek/deepseek-r1"
 deta update -e OPENROUTER_SITE_URL="https://your-backend.deta.dev"
 deta update -e OPENROUTER_APP_NAME="Veritas API"
-deta update -e HUGGINGFACE_API_KEY="your_hf_key_here" 
-deta update -e OCR_ENGINE="trocr"   # or donut
-deta update -e HF_TROCR_MODEL="microsoft/trocr-large-printed"
-deta update -e HF_DONUT_MODEL="naver-clova-ix/donut-base-finetuned-docvqa"
-deta update -e USE_LAYOUT_REFINER="false"
-deta update -e HF_DOCVQA_MODEL="impira/layoutlm-document-qa"
+deta update -e HUGGINGFACE_API_KEY="your_hf_key_here"
+deta update -e DOCTR_API_MODEL="microsoft/trocr-small-printed"
 deta update -e SUPABASE_URL="your_supabase_url"
 deta update -e SUPABASE_ANON_KEY="your_supabase_key"
 ```
@@ -137,11 +133,7 @@ OPENROUTER_MODEL=deepseek/deepseek-r1
 OPENROUTER_SITE_URL=https://your-backend.deta.dev
 OPENROUTER_APP_NAME=Veritas API
 HUGGINGFACE_API_KEY=your_hf_key
-OCR_ENGINE=trocr
-HF_TROCR_MODEL=microsoft/trocr-large-printed
-HF_DONUT_MODEL=naver-clova-ix/donut-base-finetuned-docvqa
-USE_LAYOUT_REFINER=false
-HF_DOCVQA_MODEL=impira/layoutlm-document-qa
+DOCTR_API_MODEL=microsoft/trocr-small-printed
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 ALLOWED_ORIGINS=https://your-app.vercel.app
@@ -244,7 +236,7 @@ git push origin v1.0
 ```bash
 # Ensure HF key is set and models load on first call (cold start may take ~30s)
 deta update -e HUGGINGFACE_API_KEY="your_hf_key"
-deta update -e OCR_ENGINE="trocr"  # or donut
+deta update -e DOCTR_API_MODEL="microsoft/trocr-small-printed"
 ```
 
 **2. CORS Errors**

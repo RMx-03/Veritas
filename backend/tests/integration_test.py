@@ -1,18 +1,29 @@
 """
 Test script for Veritas API endpoints
-Run with: python test_api.py
+Run with: python integration_test.py
 """
 
+import os
 import requests
 import json
 from pathlib import Path
+import pytest
+
+# Opt-in to avoid network calls during normal pytest runs
+RUN_INTEGRATION_TESTS = os.getenv("RUN_INTEGRATION_TESTS", "false").lower() in ("1", "true", "yes", "y")
+pytestmark = pytest.mark.integration
+if not RUN_INTEGRATION_TESTS:
+    pytest.skip(
+        "Skipping integration tests by default. Set RUN_INTEGRATION_TESTS=true to enable.",
+        allow_module_level=True,
+    )
 
 API_BASE = "http://localhost:8000"
 
 def test_health_endpoint():
     """Test the health check endpoint"""
     try:
-        response = requests.get(f"{API_BASE}/health")
+        response = requests.get(f"{API_BASE}/health", timeout=5)
         print(f"✅ Health Check: {response.status_code}")
         print(f"   Response: {response.json()}")
         return response.status_code == 200
@@ -23,7 +34,7 @@ def test_health_endpoint():
 def test_root_endpoint():
     """Test the root endpoint"""
     try:
-        response = requests.get(f"{API_BASE}/")
+        response = requests.get(f"{API_BASE}/", timeout=5)
         print(f"✅ Root Endpoint: {response.status_code}")
         print(f"   Response: {response.json()}")
         return response.status_code == 200
@@ -35,7 +46,7 @@ def test_analyze_endpoint():
     """Test the analyze endpoint with a sample image"""
     print("\n⚠️  Analyze endpoint test requires:")
     print("   1. A sample food label image file")
-    print("   2. Backend .env configured (HUGGINGFACE_API_KEY, OCR_ENGINE=trocr|donut; OpenRouter, Supabase)")
+    print("   2. Backend .env configured (HUGGINGFACE_API_KEY, DOCTR_API_MODEL; OpenRouter, Supabase)")
     print("   3. Backend server running")
     
     # Create a dummy test without actual file upload
@@ -45,7 +56,7 @@ def test_analyze_endpoint():
 def test_history_endpoint():
     """Test the history endpoint"""
     try:
-        response = requests.get(f"{API_BASE}/history")
+        response = requests.get(f"{API_BASE}/history", timeout=5)
         print(f"✅ History Endpoint: {response.status_code}")
         if response.status_code == 200:
             data = response.json()

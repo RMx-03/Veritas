@@ -22,8 +22,9 @@ OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/ap
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1")
 OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL")
 OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME")
-# OCR configuration (used for processing notes)
-OCR_ENGINE = os.getenv("OCR_ENGINE", "advanced")
+# OCR configuration (cloud-only, DocTR via HF Inference API)
+DOCTR_API_MODEL = os.getenv("DOCTR_API_MODEL", "microsoft/trocr-small-printed")
+OCR_ENGINE_DESC = "DocTR API"
 
 # Initialize OpenRouter client
 or_client: Optional[AsyncOpenAI] = None
@@ -117,7 +118,8 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                 "nova_classification": scientific_analysis.get('scientific_analysis', {}).get('nova_classification', 4),
                 "nutrient_density": scientific_analysis.get('scientific_analysis', {}).get('nutrient_density_score', 0),
                 "analysis_time": round(elapsed, 2),
-                "ocr_engine": OCR_ENGINE,
+                "ocr_engine": OCR_ENGINE_DESC,
+                "ocr_model": DOCTR_API_MODEL,
                 "ai_model": OPENROUTER_MODEL if or_client else "disabled"
             }
         }
@@ -195,7 +197,8 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                     "data_completeness": len(nutrition_facts) / 10.0 * 100,
                     "ocr_confidence": "medium",
                     "analysis_time": round(elapsed_fallback, 2),
-                    "ocr_engine": OCR_ENGINE,
+                    "ocr_engine": OCR_ENGINE_DESC,
+                    "ocr_model": DOCTR_API_MODEL,
                     "ai_model": OPENROUTER_MODEL if or_client else "disabled"
                 }
             }

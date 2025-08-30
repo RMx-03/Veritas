@@ -90,68 +90,23 @@ async def rate_limit(request: Request, call_next):
         pass
     return await call_next(request)
 
-# ---- Warmup configuration & task (pre-download OCR models) ----
-# Helps avoid first-request timeouts on platforms like Render where EasyOCR/PaddleOCR
-# download weights on first use.
+# ---- Warmup configuration & task (cloud-only, no local engines) ----
 WARMUP_ON_STARTUP = os.getenv("WARMUP_ON_STARTUP", "true").lower() == "true"
-WARMUP_ENGINES = [e.strip() for e in os.getenv("WARMUP_ENGINES", "easyocr").split(",") if e.strip()]
 logger = logging.getLogger("uvicorn.error")
-
-# EasyOCR configuration (shared with fallback path)
-EASYOCR_MODEL_DIR = os.path.expanduser(os.getenv("EASYOCR_MODEL_DIR", os.path.join("~", ".EasyOCR")))
-EASYOCR_DOWNLOAD_ON_DEMAND = os.getenv("EASYOCR_DOWNLOAD_ON_DEMAND", "true").lower() == "true"
-
-# Memory-constrained mode (disable local OCR for 512MB environments like Render free tier)
-MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
 
 # Log resolved config early for deploy verification
 try:
-    logger.info(f"[CONFIG] WARMUP_ON_STARTUP={WARMUP_ON_STARTUP} | WARMUP_ENGINES={WARMUP_ENGINES}")
-    logger.info(f"[CONFIG] EASYOCR_MODEL_DIR={EASYOCR_MODEL_DIR} | EASYOCR_DOWNLOAD_ON_DEMAND={EASYOCR_DOWNLOAD_ON_DEMAND}")
-    logger.info(f"[CONFIG] MEMORY_CONSTRAINED_MODE={MEMORY_CONSTRAINED_MODE}")
+    logger.info(f"[CONFIG] WARMUP_ON_STARTUP={WARMUP_ON_STARTUP}")
+    logger.info("[CONFIG] Cloud-only OCR mode enabled (OpenFoodFacts + DocTR API)")
 except Exception:
     pass
 
 async def warmup_ocr_models():
-    logger.info("[WARMUP] Starting OCR warmup")
+    # No-op: We no longer warm local OCR models since pipeline is cloud-only
     try:
-        if MEMORY_CONSTRAINED_MODE:
-            logger.info("[WARMUP] Memory-constrained mode enabled - skipping all local OCR engine warmup")
-            logger.info("[WARMUP] Using API-only mode: OpenFoodFacts + DocTR API")
-            return
-            
-        if "easyocr" in WARMUP_ENGINES:
-            try:
-                import easyocr  # type: ignore
-                # Force download during warmup to ensure models present at configured dir
-                try:
-                    os.makedirs(EASYOCR_MODEL_DIR, exist_ok=True)
-                except Exception:
-                    pass
-                try:
-                    _ = easyocr.Reader(
-                        ['en'],
-                        gpu=False,
-                        model_storage_directory=EASYOCR_MODEL_DIR,
-                        download_enabled=True,
-                    )
-                    logger.info(f"[WARMUP] EasyOCR reader initialized | model_dir={EASYOCR_MODEL_DIR} | download_enabled=True")
-                except TypeError:
-                    # Older EasyOCR versions may not support these kwargs
-                    _ = easyocr.Reader(['en'], gpu=False)
-                    logger.info("[WARMUP] EasyOCR reader initialized (fallback args)")
-            except Exception as e:
-                logger.warning(f"[WARMUP] EasyOCR initialization failed: {e}")
-        if "paddle" in WARMUP_ENGINES:
-            try:
-                from paddleocr import PaddleOCR  # type: ignore
-                _ = PaddleOCR(use_angle_cls=True, lang='en')
-                logger.info("[WARMUP] PaddleOCR initialized")
-            except Exception as e:
-                logger.warning(f"[WARMUP] PaddleOCR initialization failed: {e}")
-        logger.info("[WARMUP] OCR warmup complete")
-    except Exception as e:
-        logger.error(f"[WARMUP] Unexpected warmup error: {e}")
+        logger.info("[WARMUP] Cloud-only mode: no local OCR engines to warm")
+    except Exception:
+        pass
 
 @app.on_event("startup")
 async def _trigger_warmup_on_startup():
@@ -174,7 +129,7 @@ async def manual_warmup(background_tasks: BackgroundTasks):
     Returns immediately; check logs to track progress.
     """
     background_tasks.add_task(warmup_ocr_models)
-    return {"started": True, "engines": WARMUP_ENGINES}
+    return {"started": True, "cloud_only": True}
 
 @app.post("/analyze")
 async def analyze_food_label(

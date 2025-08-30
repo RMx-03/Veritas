@@ -21,7 +21,7 @@ def test_health_endpoint():
     if USE_TEST_CLIENT:
         response = client.get("/health")
     else:
-        response = requests.get(f"{API_BASE}/health")
+        response = requests.get(f"{API_BASE}/health", timeout=5)
     
     assert response.status_code == 200
     data = response.json()
@@ -33,7 +33,7 @@ def test_root_endpoint():
     if USE_TEST_CLIENT:
         response = client.get("/")
     else:
-        response = requests.get(f"{API_BASE}/")
+        response = requests.get(f"{API_BASE}/", timeout=5)
     
     assert response.status_code == 200
     data = response.json()
@@ -43,6 +43,6 @@ def test_root_endpoint():
 @pytest.mark.skipif(USE_TEST_CLIENT, reason="Requires running server for live test")
 def test_history_endpoint():
     """Test the history endpoint (requires database)"""
-    response = requests.get(f"{API_BASE}/history")
+    response = requests.get(f"{API_BASE}/history", timeout=5)
     # Should either succeed (200) or fail gracefully
     assert response.status_code in [200, 500]  # 500 if DB not configured

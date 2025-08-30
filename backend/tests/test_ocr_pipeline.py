@@ -1,6 +1,3 @@
-import os
-from unittest.mock import Mock, patch
-import numpy as np
 import pytest
 
 # ---- OpenFoodFacts lookup tests ----
@@ -71,35 +68,6 @@ def test_doctr_api_success_mock(monkeypatch):
     assert "Calories" in out.get("text", "")
 
 
-# ---- EasyOCR fallback tests ----
-
-def test_easyocr_fallback_mock(monkeypatch):
-    from app.core import easyocr_fallback as eo
-
-    # Patch image loader to avoid filesystem
-    monkeypatch.setattr(eo, "_load_image", lambda _: np.zeros((100,100,3), dtype=np.uint8))
-
-    # Mock easyocr module and Reader
-    class DummyReader:
-        def __init__(self, langs, gpu=False):
-            pass
-        def readtext(self, img):
-            return [
-                (None, "Calories 100", 0.8),
-                (None, "Ingredients: water, sugar", 0.75),
-            ]
-    class DummyEasyOCR:
-        def Reader(self, langs, gpu=False):
-            return DummyReader(langs, gpu)
-
-    monkeypatch.setattr(eo, "easyocr", DummyEasyOCR())
-
-    out = eo.easyocr_extract_text(b"bytes")
-    assert out.get("ok") is True
-    assert out.get("method") == "EasyOCR"
-    assert "Calories" in out.get("text", "")
-
-
 # ---- Unified pipeline tests ----
 
 def test_unified_prefers_openfoodfacts(monkeypatch):
@@ -111,9 +79,8 @@ def test_unified_prefers_openfoodfacts(monkeypatch):
         "text": "Ingredients: water\nNutrition: calories 100",
         "structured": {"product_name": "OFF Product"},
     })
-    # Ensure downstream tiers would fail if called
+    # Ensure downstream tier would fail if called
     monkeypatch.setattr(uni, "doctr_api_ocr", lambda *a, **k: {"ok": False, "error": "should_not_call"})
-    monkeypatch.setattr(uni, "easyocr_extract_text", lambda *a, **k: {"ok": False, "error": "should_not_call"})
 
     out = uni.extract_structured_from_image(b"img", barcode="123")
     assert out.get("method") == "OpenFoodFacts"

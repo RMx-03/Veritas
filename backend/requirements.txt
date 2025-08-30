@@ -23,10 +23,8 @@ Pillow==10.1.0           # Image processing
 opencv-python-headless==4.8.1.78  # Computer vision
 numpy==1.24.4            # Numerical operations
 
-## OCR Engines (REQUIRED for full fallback chain)
-paddleocr==2.8.1         # Primary OCR engine
-easyocr==1.7.1           # Secondary OCR engine  
-pytesseract==0.3.10      # Fallback OCR engine
+## OCR Engines
+# Local OCR engines removed; using cloud-only OCR via Hugging Face Inference API
 
 ## Text Processing (REQUIRED)
 fuzzywuzzy==0.18.0       # Fuzzy string matching in parser_enhanced.py
@@ -40,7 +38,7 @@ pytest-asyncio==0.21.0  # Async test support
 ## OPTIONAL DEPENDENCIES (Remove if not needed)
 ############################################################
 
-## Cloud OCR Services (OPTIONAL - not currently used)
+## Cloud OCR Services
 # google-generativeai==0.3.2
 # google-cloud-vision==3.4.5
 
@@ -48,7 +46,7 @@ pytest-asyncio==0.21.0  # Async test support
 # spellchecker==0.8
 # rapidfuzz==3.5.2
 
-## Heavy ML Dependencies (OPTIONAL - for TrOCR)
+## Heavy ML Dependencies (OPTIONAL - for local TrOCR; not used in cloud-only mode)
 # transformers==4.40.0
 # torch==2.2.0
 

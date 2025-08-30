@@ -8,22 +8,7 @@ import cv2
 from PIL import Image, ImageFilter, ImageOps
 import traceback
 
-# Try imports of optional heavy libs. Fallback gracefully.
-try:
-    import easyocr
-except Exception:
-    easyocr = None
-
-PaddleOCR = None
-
-try:
-    # TrOCR via transformers
-    from transformers import VisionEncoderDecoderModel, TrOCRProcessor
-    import torch
-except Exception:
-    VisionEncoderDecoderModel = None
-    TrOCRProcessor = None
-    torch = None
+# Local OCR engines removed (EasyOCR, PaddleOCR, TrOCR). Cloud-only pipeline remains.
 
 # Optional nutrition parsers for structured output (backward compatibility with previous unified OCR API)
 try:
@@ -38,22 +23,6 @@ except Exception:
         _enhanced_parse = None
 from .openfoodfacts_lookup import query_openfoodfacts
 from .doctr_api import doctr_api_ocr
-from .easyocr_fallback import easyocr_extract_text
-
-# Cache heavy OCR engine instances so we don't re-create per crop
-_paddle_instance: Optional['PaddleOCR'] = None
-_easy_reader_cache: Dict[str, 'easyocr.Reader'] = {}
-
-def _ensure_paddleocr_loaded():
-    """Lazy-load PaddleOCR only when needed."""
-    global PaddleOCR
-    if PaddleOCR is None:
-        try:
-            from paddleocr import PaddleOCR as _PaddleOCR  # type: ignore
-            PaddleOCR = _PaddleOCR
-        except Exception:
-            PaddleOCR = None
-    return PaddleOCR
 
 # ---- Utilities ----
 def load_image(path_or_bytes):
@@ -129,96 +98,7 @@ def crop_boxes(img: np.ndarray, boxes: List[Tuple[int,int,int,int]]) -> List[np.
     return crops
 
 # ---- OCR wrappers ----
-def ocr_easyocr(img: np.ndarray, langs: List[str]=["en"]) -> List[Dict]:
-    # Check memory-constrained mode first
-    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
-    if MEMORY_CONSTRAINED_MODE:
-        print("EasyOCR disabled in memory-constrained mode")
-        return []
-    
-    if easyocr is None:
-        return []
-    try:
-        key = ",".join(langs)
-        reader = _easy_reader_cache.get(key)
-        if reader is None:
-            reader = easyocr.Reader(langs, gpu=False)
-            _easy_reader_cache[key] = reader
-        results = reader.readtext(img)
-        out = []
-        for bbox, text, conf in results:
-            out.append({"text": text, "conf": float(conf), "bbox": bbox})
-        return out
-    except Exception as e:
-        print("EasyOCR error:", e)
-        return []
-
-def ocr_paddle(img: np.ndarray) -> List[Dict]:
-    # Check memory-constrained mode first
-    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
-    if MEMORY_CONSTRAINED_MODE:
-        print("PaddleOCR disabled in memory-constrained mode")
-        return []
-    
-    if _ensure_paddleocr_loaded() is None:
-        return []
-    global _paddle_instance
-    try:
-        if _paddle_instance is None:
-            _paddle_instance = PaddleOCR(use_angle_cls=True, lang='en')
-        result = _paddle_instance.ocr(img, cls=True)
-        out = []
-        for line in result:
-            if isinstance(line, list) and len(line) >= 2:
-                bbox = line[0]
-                txt, conf = line[1]
-                out.append({"text": txt, "conf": float(conf), "bbox": bbox})
-        return out
-    except Exception as e:
-        print("PaddleOCR error:", e)
-        return []
-
-# TrOCR wrapper (requires transformers + torch)
-_trocr_model = None
-_trocr_processor = None
-def init_trocr(model_name="microsoft/trocr-small-printed"):
-    global _trocr_model, _trocr_processor
-    if VisionEncoderDecoderModel is None or TrOCRProcessor is None or torch is None:
-        return False
-    try:
-        _trocr_model = VisionEncoderDecoderModel.from_pretrained(model_name)
-        _trocr_processor = TrOCRProcessor.from_pretrained(model_name)
-        _trocr_model.to("cpu")
-        return True
-    except Exception as e:
-        print("TrOCR init error:", e)
-        return False
-
-def ocr_trocr(img: np.ndarray) -> List[Dict]:
-    """
-    Run TrOCR on the whole image. Returns single-block output (image->text).
-    For region-level OCR, crop first and call this per-crop.
-    """
-    # Check memory-constrained mode first
-    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
-    if MEMORY_CONSTRAINED_MODE:
-        print("TrOCR disabled in memory-constrained mode")
-        return []
-    
-    if _trocr_model is None or _trocr_processor is None:
-        return []
-    try:
-        pil = to_pil(img).convert("RGB")
-        pixel_values = _trocr_processor(images=pil, return_tensors="pt").pixel_values
-        with torch.no_grad():
-            output_ids = _trocr_model.generate(pixel_values)
-        pred = _trocr_processor.batch_decode(output_ids, skip_special_tokens=True)[0]
-        # return single item with full image bbox
-        h, w = img.shape[:2]
-        return [{"text": pred, "conf": 0.9, "bbox": [(0,0),(w,0),(w,h),(0,h)]}]
-    except Exception as e:
-        print("TrOCR error:", e)
-        return []
+# Removed (EasyOCR/Paddle/TrOCR). Cloud-only OCR via DocTR API.
 
 # ---- Ensemble / merge utilities ----
 def merge_ocr_results(boxed_results: List[Tuple[Tuple[int,int,int,int], List[Dict]]]) -> List[Dict]:
@@ -346,40 +226,6 @@ def extract_structured_from_image(
             if not doc.get("ok"):
                 debug["notes"].append(f"DocTR API error: {doc.get('error') or doc.get('details')}")
             debug["pipeline"].append("DocTR API:fail")
-
-        # Step 3: Local EasyOCR fallback
-        eo = easyocr_extract_text(image_path_or_bytes)
-        if eo.get("ok") and (eo.get("text") or "").strip():
-            full_text = eo.get("text", "")
-            merged = [{"box": (0,0,0,0), "text": line, "conf": 0.7} for line in full_text.splitlines() if line.strip()]
-            sections = split_to_sections(merged)
-            structured = {}
-            if ENHANCED_PARSER and _enhanced_parse:
-                try:
-                    structured = _enhanced_parse(full_text)
-                except Exception:
-                    pass
-            elif not ENHANCED_PARSER and '_basic_parse' in globals() and _basic_parse:
-                try:
-                    structured = _basic_parse(full_text)
-                except Exception:
-                    pass
-            debug["engines"].append("easyocr")
-            debug["pipeline"].append("EasyOCR")
-            confidence = "medium" if len(full_text.strip()) > 10 else "low"
-            return {
-                "text": full_text,
-                "structured": structured if structured else sections,
-                "method": "EasyOCR",
-                "confidence": confidence,
-                "raw_ocr": merged,
-                "sections": sections,
-                "debug": debug,
-            }
-        else:
-            if not eo.get("ok"):
-                debug["notes"].append(f"EasyOCR fallback error: {eo.get('error')}")
-            debug["pipeline"].append("EasyOCR:fail")
 
         # All tiers failed; return graceful, minimal payload
         return {

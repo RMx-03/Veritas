@@ -6,7 +6,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 
 ## Features
 
-- ** Multi-tier OCR & Lookup** - OpenFoodFacts lookup → HF Inference OCR (DocTR/TroCR) → EasyOCR fallback
+- ** Cloud-only OCR & Lookup** - OpenFoodFacts lookup → HF Inference OCR (DocTR/TrOCR)
 - ** AI Analysis** - Verify health claims using OpenRouter (DeepSeek R1)
 - ** Nutrition Insights** - Comprehensive nutritional breakdown with charts
 - ** Ingredient Warnings** - Identify harmful ingredients and allergens
@@ -23,7 +23,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 
 **Backend:**
 - FastAPI (Python)
-- OpenFoodFacts API first, then Hugging Face Inference OCR (DocTR/TroCR), with EasyOCR fallback
+- OpenFoodFacts API first, then Hugging Face Inference OCR (DocTR/TrOCR)
 - OpenRouter (DeepSeek R1) for AI reasoning
 - Optional DocVQA (LayoutLM family) for layout-aware refinement
 
@@ -78,7 +78,7 @@ cp ../.env.example .env
 2. Run the SQL schema from `db/schema.sql` in Supabase SQL Editor
 3. Update `.env` files with Supabase credentials
 
-### 5. Configure Multi-tier OCR Pipeline
+### 5. Configure Cloud OCR Pipeline
 
 ```env
 # backend/.env
@@ -88,10 +88,6 @@ OPENFOODFACTS_BASE_URL=https://world.openfoodfacts.org/api/v0/product/
 # 2) Hugging Face Inference OCR (optional)
 HUGGINGFACE_API_KEY=your_hf_token
 DOCTR_API_MODEL=microsoft/trocr-small-printed
-
-# 3) Local fallback
-WARMUP_ON_STARTUP=true
-WARMUP_ENGINES=easyocr
 ```
 
 ### 6. Run Development Servers
