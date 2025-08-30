@@ -97,14 +97,40 @@ WARMUP_ON_STARTUP = os.getenv("WARMUP_ON_STARTUP", "true").lower() == "true"
 WARMUP_ENGINES = [e.strip() for e in os.getenv("WARMUP_ENGINES", "easyocr").split(",") if e.strip()]
 logger = logging.getLogger("uvicorn.error")
 
+# EasyOCR configuration (shared with fallback path)
+EASYOCR_MODEL_DIR = os.path.expanduser(os.getenv("EASYOCR_MODEL_DIR", os.path.join("~", ".EasyOCR")))
+EASYOCR_DOWNLOAD_ON_DEMAND = os.getenv("EASYOCR_DOWNLOAD_ON_DEMAND", "true").lower() == "true"
+
+# Log resolved config early for deploy verification
+try:
+    logger.info(f"[CONFIG] WARMUP_ON_STARTUP={WARMUP_ON_STARTUP} | WARMUP_ENGINES={WARMUP_ENGINES}")
+    logger.info(f"[CONFIG] EASYOCR_MODEL_DIR={EASYOCR_MODEL_DIR} | EASYOCR_DOWNLOAD_ON_DEMAND={EASYOCR_DOWNLOAD_ON_DEMAND}")
+except Exception:
+    pass
+
 async def warmup_ocr_models():
     logger.info("[WARMUP] Starting OCR warmup")
     try:
         if "easyocr" in WARMUP_ENGINES:
             try:
                 import easyocr  # type: ignore
-                _ = easyocr.Reader(['en'], gpu=False)
-                logger.info("[WARMUP] EasyOCR reader initialized")
+                # Force download during warmup to ensure models present at configured dir
+                try:
+                    os.makedirs(EASYOCR_MODEL_DIR, exist_ok=True)
+                except Exception:
+                    pass
+                try:
+                    _ = easyocr.Reader(
+                        ['en'],
+                        gpu=False,
+                        model_storage_directory=EASYOCR_MODEL_DIR,
+                        download_enabled=True,
+                    )
+                    logger.info(f"[WARMUP] EasyOCR reader initialized | model_dir={EASYOCR_MODEL_DIR} | download_enabled=True")
+                except TypeError:
+                    # Older EasyOCR versions may not support these kwargs
+                    _ = easyocr.Reader(['en'], gpu=False)
+                    logger.info("[WARMUP] EasyOCR reader initialized (fallback args)")
             except Exception as e:
                 logger.warning(f"[WARMUP] EasyOCR initialization failed: {e}")
         if "paddle" in WARMUP_ENGINES:

@@ -2,6 +2,8 @@ import io
 from typing import Dict, List, Union
 import numpy as np
 import cv2
+import os
+import logging
 
 try:
     import easyocr  # type: ignore
@@ -9,6 +11,10 @@ except Exception:
     easyocr = None
 
 _reader_cache: dict = {}
+
+LOGGER = logging.getLogger("uvicorn.error")
+EASYOCR_MODEL_DIR = os.path.expanduser(os.getenv("EASYOCR_MODEL_DIR", os.path.join("~", ".EasyOCR")))
+EASYOCR_DOWNLOAD_ON_DEMAND = os.getenv("EASYOCR_DOWNLOAD_ON_DEMAND", "true").lower() == "true"
 
 
 def _load_image(path_or_bytes: Union[str, bytes, bytearray]) -> np.ndarray:
@@ -42,13 +48,42 @@ def easyocr_extract_text(image_path_or_bytes: Union[str, bytes, bytearray], lang
     if easyocr is None:
         return {"ok": False, "error": "easyocr_not_available"}
     try:
-        img = _load_image(image_path_or_bytes)
-        pre = _preprocess(img)
         key = ",".join(langs)
         reader = _reader_cache.get(key)
         if reader is None:
-            reader = easyocr.Reader(langs, gpu=False)
+            # If downloads are disabled and no local models are present, short-circuit
+            if not EASYOCR_DOWNLOAD_ON_DEMAND:
+                if not (os.path.isdir(EASYOCR_MODEL_DIR) and os.listdir(EASYOCR_MODEL_DIR)):
+                    try:
+                        LOGGER.warning(f"[EASYOCR] Skipping EasyOCR: models not found at {EASYOCR_MODEL_DIR} and downloads disabled")
+                    except Exception:
+                        pass
+                    return {"ok": False, "error": "easyocr_models_missing", "details": f"Models not present at {EASYOCR_MODEL_DIR} and EASYOCR_DOWNLOAD_ON_DEMAND=false"}
+
+            # Initialize EasyOCR reader with configured storage dir and download policy
+            try:
+                try:
+                    LOGGER.info(f"[EASYOCR] Initializing reader | model_dir={EASYOCR_MODEL_DIR} | download_on_demand={EASYOCR_DOWNLOAD_ON_DEMAND} | langs={key}")
+                except Exception:
+                    pass
+                reader = easyocr.Reader(
+                    langs,
+                    gpu=False,
+                    model_storage_directory=EASYOCR_MODEL_DIR,
+                    download_enabled=EASYOCR_DOWNLOAD_ON_DEMAND,
+                )
+            except TypeError:
+                # Older EasyOCR versions may not support these kwargs; fall back safely
+                try:
+                    LOGGER.info("[EASYOCR] Reader args not supported in this EasyOCR version; falling back to defaults")
+                except Exception:
+                    pass
+                reader = easyocr.Reader(langs, gpu=False)
             _reader_cache[key] = reader
+
+        # Load and preprocess only after reader is ready
+        img = _load_image(image_path_or_bytes)
+        pre = _preprocess(img)
         results = reader.readtext(pre)
         lines: List[str] = []
         for _, text, conf in results:
