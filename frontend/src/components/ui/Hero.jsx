@@ -4,8 +4,16 @@ import { ArrowRight, Sparkles, Shield, Zap } from 'lucide-react';
 const Hero = ({ onGetStarted }) => {
   return (
     <section className="relative min-h-screen lg:min-h-[90vh] bg-gradient-to-br from-brand-blue-50 via-white to-brand-teal-50 flex items-center overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-blue-100 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-brand-teal-100 rounded-full blur-3xl opacity-30"></div>
+        {/* Background image with blur, gradient wash and noise overlay */}
+        <div className="absolute inset-0 z-0" aria-hidden="true">
+          <div className="absolute inset-0 bg-[url('/HeroSection.png')] bg-cover bg-center blur-xl scale-105"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/80"></div>
+          <div className="absolute inset-0 noise-overlay"></div>
+        </div>
+
+        {/* Decorative blobs (kept subtle and below content) */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-blue-100 rounded-full blur-3xl opacity-30 z-0"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-brand-teal-100 rounded-full blur-3xl opacity-30 z-0"></div>
       
       <div className="container-wide relative z-10 px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">

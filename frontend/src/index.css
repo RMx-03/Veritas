@@ -353,6 +353,18 @@
   .animate-scale-in {
     animation: scale-in 0.3s ease-out;
   }
+
+  /* Subtle noise overlay for image backgrounds */
+  .noise-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* Dot-pattern noise approximation to avoid large data URIs */
+    background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0.08;
+    mix-blend-mode: normal;
+  }
 }
 
 /* Custom keyframes */
