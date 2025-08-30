@@ -97,7 +97,21 @@ logger = logging.getLogger("uvicorn.error")
 # Log resolved config early for deploy verification
 try:
     logger.info(f"[CONFIG] WARMUP_ON_STARTUP={WARMUP_ON_STARTUP}")
-    logger.info("[CONFIG] Cloud-only OCR mode enabled (OpenFoodFacts + DocTR API)")
+    provider = (os.getenv("CLOUD_OCR_PROVIDER", "hf") or "hf").lower()
+    logger.info(f"[CONFIG] Cloud-only OCR mode enabled (OpenFoodFacts + provider={provider})")
+    # Additional diagnostics for cloud OCR configuration
+    if provider == "mistral":
+        mk = os.getenv("MISTRAL_API_KEY") or ""
+        mm = os.getenv("MISTRAL_OCR_MODEL", "pixtral-12b")
+        masked_mk = (mk[:3] + "*" * max(0, len(mk) - 7) + mk[-4:]) if mk else None
+        logger.info(f"[CONFIG] MISTRAL_API_KEY present: {bool(mk)}" + (f" ({masked_mk})" if masked_mk else ""))
+        logger.info(f"[CONFIG] MISTRAL_OCR_MODEL={mm}")
+    else:
+        hf_key = os.getenv("HUGGINGFACE_API_KEY") or ""
+        doctr_model = os.getenv("DOCTR_API_MODEL", "microsoft/trocr-small-printed")
+        masked = ("hf_" + "*" * max(0, len(hf_key) - 6) + hf_key[-4:]) if hf_key.startswith("hf_") else None
+        logger.info(f"[CONFIG] HUGGINGFACE_API_KEY present: {bool(hf_key)}" + (f" ({masked})" if masked else ""))
+        logger.info(f"[CONFIG] DOCTR_API_MODEL={doctr_model}")
 except Exception:
     pass
 
@@ -162,6 +176,8 @@ async def analyze_food_label(
             print(f"[ANALYZE] Step 1: Starting OCR pipeline for analysis {analysis_id}")
             if barcode or product_name:
                 print(f"[ANALYZE] OpenFoodFacts priority lookup | barcode={barcode} | product_name={product_name}")
+            else:
+                print("[ANALYZE] OpenFoodFacts skipped: no barcode or product_name provided")
             ocr_out = extract_structured_from_image(temp_file_path, barcode=barcode, product_name=product_name)
             extracted_text = ocr_out.get("text", "")
             structured_data = ocr_out.get("structured", {}) or {}
@@ -171,6 +187,16 @@ async def analyze_food_label(
             print(f"[ANALYZE] OCR text preview: {extracted_text[:200] if extracted_text else 'None'}...")
 
             if not extracted_text or len(extracted_text.strip()) < 10:
+                # Surface internal OCR pipeline debug info to logs for diagnostics
+                try:
+                    dbg = ocr_out.get("debug", {}) if isinstance(ocr_out, dict) else {}
+                    print(f"[OCR_DEBUG] pipeline: {dbg.get('pipeline')}")
+                    print(f"[OCR_DEBUG] engines: {dbg.get('engines')}")
+                    notes = dbg.get("notes")
+                    if notes:
+                        print(f"[OCR_DEBUG] notes: {notes}")
+                except Exception:
+                    pass
                 print(f"[ANALYZE] ERROR: Insufficient text extracted ({len(extracted_text.strip()) if extracted_text else 0} chars)")
                 raise HTTPException(
                     status_code=400,

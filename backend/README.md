@@ -51,7 +51,9 @@ cp .env.example .env
 # Edit .env with your API keys:
 # - OPENROUTER_API_KEY (required)
 # - SUPABASE_URL and SUPABASE_ANON_KEY (required)
-# - HUGGINGFACE_API_KEY (required for OCR via DocTR)
+# - For OCR choose a cloud provider:
+#   * CLOUD_OCR_PROVIDER=hf and set HUGGINGFACE_API_KEY (DocTR via HF Inference API), or
+#   * CLOUD_OCR_PROVIDER=mistral and set MISTRAL_API_KEY (Pixtral vision via Mistral)
 ```
 
 ### 3. Run the Application
@@ -97,7 +99,11 @@ Key environment variables:
 ### Optional
 - `USDA_API_KEY` - USDA nutrition database access
 - `OPENFOODFACTS_BASE_URL` - Base URL for OpenFoodFacts product endpoint (default: https://world.openfoodfacts.org/api/v0/product/)
+- `CLOUD_OCR_PROVIDER` - `hf` (default) or `mistral`
 - `DOCTR_API_MODEL` - HF model for OCR via API (default: microsoft/trocr-small-printed)
+- `DOCTR_API_TASK` - HF inference task (default: image-to-text)
+- `MISTRAL_API_KEY` - Mistral La Plateforme API key (required if provider=mistral)
+- `MISTRAL_OCR_MODEL` - Mistral vision model (default: pixtral-12b)
 - `ALLOWED_ORIGINS` - Comma-separated list of allowed origins for CORS. Use `*` only in development.
 - `MAX_UPLOAD_MB` - Max upload size in MB for `/analyze` (default: 10).
 - `RATE_LIMIT_PER_MINUTE` - Simple per-IP requests/min limit (default: 120).
@@ -120,7 +126,9 @@ The FastAPI app includes production hardening in `app/api/main.py`:
 The OCR/data retrieval now follows an API-first, cloud-only chain:
 
 1. OpenFoodFacts lookup (if `barcode` or `product_name` provided) – returns structured data and skips OCR when found.
-2. Hugging Face Inference API (DocTR) – uses `HUGGINGFACE_API_KEY` and `DOCTR_API_MODEL`.
+2. Cloud OCR Provider – selected by `CLOUD_OCR_PROVIDER`:
+   - `hf`: Hugging Face Inference API (DocTR) – uses `HUGGINGFACE_API_KEY`, `DOCTR_API_MODEL`, and `DOCTR_API_TASK`.
+   - `mistral`: Mistral La Plateforme (Pixtral vision) – uses `MISTRAL_API_KEY` and `MISTRAL_OCR_MODEL`.
 
 Each tier logs which method was used and gracefully falls back on errors or rate limits. See `app/core/ocr_unified.py`.
 
@@ -143,7 +151,7 @@ curl -X POST "http://localhost:8000/analyze?barcode=737628064502" \
 
 ### Core Modules
 - **analyzer.py** - Main AI analysis using OpenRouter
-- **ocr_unified.py** - Cloud OCR pipeline (OpenFoodFacts + DocTR API)
+- **ocr_unified.py** - Cloud OCR pipeline (OpenFoodFacts + Cloud OCR Provider)
 - **parser_enhanced.py** - Nutrition facts parsing and extraction
 - **food_scientist_analyzer.py** - Scientific nutrition analysis
 - **knowledge_base.py** - External API integrations (USDA, OpenFoodFacts)

@@ -1,0 +1,183 @@
+{
+  "analysis_id": "e74d2c89-1dfc-43db-8e9b-3e626c92d814",
+  "filename": "dafds.png",
+  "analysis_data": {
+    "analysisId": "e74d2c89-1dfc-43db-8e9b-3e626c92d814",
+    "timestamp": "2025-08-30T18:25:22.458396",
+    "extractedText": "### Pacific Foods\n\n#### Organic Creamy Tomato Basil Soup\n\n**90 Calories | Vegan | Gluten Free**\n\n---\n\n**Statement of identity**\n\n**Nutrition information**\n\n**Ingredients**\n\n**Name/address of manufacturer**\n\n**Net contents**\n\n---\n\n**Nutrition Facts**\n\n**About 4 servings per container**\n\n**Serving size 1 cup (240 mL)**\n\n**Amount per serving**\n\n**Calories 90**\n\n**Total Fat 2g 3%**\n\n**Sodium 630mg 27%**\n\n**Total Carbohydrate 13g 5%**\n\n**Dietary Fiber 2g 7%**\n\n**Total Sugars 9g**\n\n**Includes 3g Added Sugars 6%**\n\n**Protein 4g**\n\n**Iron 1mg 6% \u2022 Potassium 459mg 10%**\n\n**Not a significant source of saturated fat, trans fat, cholesterol, vitamin D, and calcium.**\n\n**The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for this guide.**\n\n**INGREDIENTS: WATER, SOY BASE, WATER, SOYBEANS*, TOMATO PASTE*, SUGAR*, SEA SALT, ONION PUREE*, HIGH-OLIER SUNFLOWER OIL*, CITRIC ACID, GARLIC PUREE, SPICES*, RICE FLOUR*, BASIL OIL*.**\n\n**CONTAINS: SOY**\n\n**Distributed by Pacific Foods of Oregon, LLC, Tualatin, OR 97062 USA**\n\n**Certified Organic by Oregon Tilth**",
+    "nutrition_facts": {
+      "calories": 0.0,
+      "serving_size": "**",
+      "total_fat": 2.0,
+      "sodium": 630.0,
+      "total_carbs": 13.0,
+      "dietary_fiber": 2.0,
+      "total_sugars": 9.0,
+      "protein": 4.0,
+      "iron": 1.0,
+      "potassium": 459.0,
+      "total_fat_dv": 3.0,
+      "sodium_dv": 27.0,
+      "total_carbs_dv": 5.0,
+      "dietary_fiber_dv": 7.0,
+      "iron_dv": 6.0
+    },
+    "scientific_analysis": {
+      "nutrient_density_score": 0.0,
+      "processing_level": "processed",
+      "nova_classification": 2,
+      "macronutrient_balance": {
+        "protein_percent": 0,
+        "carb_percent": 0,
+        "fat_percent": 0,
+        "balance_score": 0
+      },
+      "additive_risk_score": 0,
+      "ingredient_complexity_index": 3.0,
+      "evidence_based_insights": {
+        "key_findings": [
+          "Low nutrient density (0.0) suggests limited nutritional benefits",
+          "NOVA Group 2 classification indicates processed culinary ingredients",
+          "Exceeds heart-healthy sodium recommendations"
+        ],
+        "health_benefits": [
+          "Minimally processed with basic culinary modifications"
+        ],
+        "health_concerns": [
+          "Poor nutritional value relative to calorie content - mostly empty calories",
+          "Low protein content - consider pairing with protein-rich foods",
+          "High sodium content (630.0mg) may contribute to hypertension and cardiovascular risk"
+        ],
+        "consumption_recommendations": [
+          "Consume occasionally - limit to 2-3 times per week maximum",
+          "Consider healthier alternatives when possible"
+        ]
+      }
+    },
+    "health_score": {
+      "score": 40,
+      "level": "poor",
+      "factors": [
+        "Low nutrient density (0.0) suggests limited nutritional benefits",
+        "NOVA Group 2 classification indicates processed culinary ingredients",
+        "Exceeds heart-healthy sodium recommendations"
+      ]
+    },
+    "health_impact_assessment": {
+      "cardiovascular": "MODERATE RISK (high sodium)",
+      "metabolic": "FAVORABLE",
+      "digestive": "NEUTRAL",
+      "inflammatory": "NEUTRAL"
+    },
+    "ingredients_analysis": {},
+    "claim_verification": [
+      {
+        "claim": "Added",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Organic",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Vegan",
+        "status": "verified",
+        "explanation": "**Conclusion:** 2. Misleading  \n\n**Explanation:**  \nThe \"Vegan\" claim refers to the absence of animal-derived ingredients, which cannot be verified solely through nutrition facts. While the provided data (e.g., protein at 4g, no cholesterol listed) does not inherently contradict vegan status, the claim requires ingredient-level validation (e.g., no dairy, eggs, honey, or gelatin). Nutrition labels do not disclose specific ingredients or processing methods (e.g., cross-contamination risks), which are critical for confirming vegan compliance.  \n\nAdditionally, the incomplete serving size (\"**\") violates FDA labeling requirements (21 CFR 101.9), casting doubt on the product's transparency. Without ingredient disclosure, the claim is technically unverifiable and potentially deceptive, even if unintentionally.  \n\n**Key Takeaway:** \"Vegan\" claims must be supported by ingredient lists, not just nutrient profiles. The missing serving size further undermines compliance.",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Gluten Free",
+        "status": "verified",
+        "explanation": "**Answer:**  \n1. **Verified (accurate and supported by data)**  \n\n**Explanation:**  \nThe FDA defines \"gluten-free\" as containing less than 20 parts per million (ppm) of gluten, which is not directly measurable from standard nutrition facts. The claim \"Gluten Free\" is unrelated to the listed nutrients (e.g., calories, fat, carbs) and instead depends on the absence of gluten-containing ingredients (wheat, barley, rye) or proper processing to remove gluten.  \n\nThe provided nutrition facts do **not** include ingredients or gluten content data, so they neither confirm nor refute the claim. However, the claim itself is permissible under FDA regulations if the product meets the <20 ppm threshold. Since the nutrition facts do not contradict the claim (e.g., no obvious gluten sources like \"wheat\" are listed in the data), the claim is **verified** as compliant with FDA standards.  \n\n**Note:** Verification of \"gluten-free\"",
+        "source": "AI analysis (OpenRouter)"
+      }
+    ],
+    "key_insights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 2 classification indicates processed culinary ingredients",
+      "Exceeds heart-healthy sodium recommendations"
+    ],
+    "recommendations": [
+      "Consume occasionally - limit to 2-3 times per week maximum",
+      "Consider healthier alternatives when possible"
+    ],
+    "ai_recommendation": {
+      "level": "moderate",
+      "summary": "### Comprehensive Nutritional Analysis of Product\n\n---\n\n#### **1. Nutrient Density Evaluation**\n**Nutrient Density Score (NDS):**  \n- *Calculation:* (Essential nutrients per 100 kcal)  \n  - **Assumption:** Reported \"0 kcal\" is likely a labeling error (macronutrients imply ~86 kcal/serving: 2g fat \u00d7 ",
+      "reasons": [
+        "- *Risk:* Moderate for diabetics due to 9g added sugars (likely from tomato paste and sugar).",
+        "- **Cardiovascular risk:** 630mg/serving = 27% DV.",
+        "- *Concern:* Exceeds AHA ideal limit (1500mg/day) with 2 servings."
+      ],
+      "tips": [
+        "- Aligns with USDA fiber recommendations (14g/1000 kcal).",
+        "#### **4. Pathophysiological Considerations**"
+      ],
+      "insights": [
+        "- **NDS:** Moderate (limited micronutrient diversity; high sodium offsets benefits).",
+        "- *Benefit:* Oleic acid reduces LDL cholesterol (meta-analysis: Schwingshackl et al., 2018).",
+        "- **Benefit:** Monounsaturated fats reduce LDL oxidation."
+      ],
+      "aiAnalysis": "### Comprehensive Nutritional Analysis of Product\n\n---\n\n#### **1. Nutrient Density Evaluation**\n**Nutrient Density Score (NDS):**  \n- *Calculation:* (Essential nutrients per 100 kcal)  \n  - **Assumption:** Reported \"0 kcal\" is likely a labeling error (macronutrients imply ~86 kcal/serving: 2g fat \u00d7 9 + 13g carbs \u00d7 4 + 4g protein \u00d7 4).  \n  - **Per 100 kcal basis:**  \n    - Fiber: 2.3g (9% DV)  \n    - Potassium: 534mg (11% DV)  \n    - Iron: 1.2mg (7% DV)  \n    - Protein: 4.7g  \n  - **NDS:** Moderate (limited micronutrient diversity; high sodium offsets benefits).  \n\n**Macronutrient Distribution vs. AMDR:**  \n- Fat: 21% (AMDR: 20\u201335%)  \n- Carbs: 60% (AMDR: 45\u201365%)  \n- Protein: 19% (AMDR: 10\u201335%)  \n- *Conclusion:* Meets AMDR guidelines.  \n\n**Micronutrient Contributions (% DV):**  \n- Sodium: 27% (630mg)  \n- Fiber: 7% (2g)  \n- Iron: 6% (1mg)  \n- Potassium: 10% (459mg)  \n- *Key Gap:* Low in calcium, vitamins A/C/D.  \n\n**USDA/WHO Alignment:**  \n- Exceeds WHO sodium limit (\u22642000mg/day) with 630mg/serving.  \n- Aligns with USDA fiber recommendations (14g/1000 kcal).  \n\n---\n\n#### **2. Biochemical Impact Assessment**  \n**Glycemic Response:**  \n- **Net carbs:** 11g (13g total carbs \u2013 2g fiber).  \n- **Glycemic Load (GL):** ~6 (low; 9g sugars partially offset by fiber).  \n- *Risk:* Moderate for diabetics due to 9g added sugars (likely from tomato paste and sugar).  \n\n**Lipid Metabolism:**  \n- **Fat composition:** 2g total fat (0g saturated, likely high monounsaturated from high-oleic sunflower oil).  \n- *Benefit:* Oleic acid reduces LDL cholesterol (meta-analysis: Schwingshackl et al., 2018).  \n\n**Protein Quality:**  \n- **Amino Acid Score (AAS):** Soy protein is complete (PDCAAS = 1.0).  \n- **Limitation:** Low quantity (4g/serving) for muscle synthesis.  \n\n**Sodium Impact:**  \n- **Cardiovascular risk:** 630mg/serving = 27% DV.  \n- *Concern:* Exceeds AHA ideal limit (1500mg/day) with 2 servings.  \n\n---\n\n#### **3. NOVA Classification & Processing Analysis**  \n**NOVA Class:** **Processed food (Group 3)**  \n- **Key indicators:**  \n  - Processed ingredients: Tomato paste, high-oleic sunflower oil, citric acid.  \n  - No artificial additives, but includes culinary preservatives (citric acid).  \n\n**Ultra-Processed Ingredients:** None identified.  \n\n**Preservation Methods:**  \n- Acidification (citric acid) extends shelf life without significant nutrient loss.  \n\n**Additive Safety:**  \n- Citric acid (GRAS by FDA).  \n\n---\n\n#### **4. Pathophysiological Considerations**  \n**Cardiovascular Disease (CVD):**  \n- **Risk:** High sodium (630mg) increases hypertension risk (He et al., 2013).  \n- **Benefit:** Monounsaturated fats reduce LDL oxidation.  \n\n**Diabetes/Metabolic Syndrome:**  \n- **Risk:** 9g sugars/serving (added sugars = 18% of WHO\u2019s 50g daily limit).  \n\n**Inflammation Potential:**  \n- **Omega-6/3 Ratio:** Likely skewed"
+    },
+    "overall_score": 40,
+    "processedImage": null,
+    "nutritionFacts": {
+      "calories": 0.0,
+      "serving_size": "**",
+      "total_fat": 2.0,
+      "sodium": 630.0,
+      "total_carbs": 13.0,
+      "dietary_fiber": 2.0,
+      "total_sugars": 9.0,
+      "protein": 4.0,
+      "iron": 1.0,
+      "potassium": 459.0,
+      "total_fat_dv": 3.0,
+      "sodium_dv": 27.0,
+      "total_carbs_dv": 5.0,
+      "dietary_fiber_dv": 7.0,
+      "iron_dv": 6.0
+    },
+    "claimVerification": [
+      {
+        "claim": "Added",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Organic",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Vegan",
+        "status": "verified",
+        "explanation": "**Conclusion:** 2. Misleading  \n\n**Explanation:**  \nThe \"Vegan\" claim refers to the absence of animal-derived ingredients, which cannot be verified solely through nutrition facts. While the provided data (e.g., protein at 4g, no cholesterol listed) does not inherently contradict vegan status, the claim requires ingredient-level validation (e.g., no dairy, eggs, honey, or gelatin). Nutrition labels do not disclose specific ingredients or processing methods (e.g., cross-contamination risks), which are critical for confirming vegan compliance.  \n\nAdditionally, the incomplete serving size (\"**\") violates FDA labeling requirements (21 CFR 101.9), casting doubt on the product's transparency. Without ingredient disclosure, the claim is technically unverifiable and potentially deceptive, even if unintentionally.  \n\n**Key Takeaway:** \"Vegan\" claims must be supported by ingredient lists, not just nutrient profiles. The missing serving size further undermines compliance.",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Gluten Free",
+        "status": "verified",
+        "explanation": "**Answer:**  \n1. **Verified (accurate and supported by data)**  \n\n**Explanation:**  \nThe FDA defines \"gluten-free\" as containing less than 20 parts per million (ppm) of gluten, which is not directly measurable from standard nutrition facts. The claim \"Gluten Free\" is unrelated to the listed nutrients (e.g., calories, fat, carbs) and instead depends on the absence of gluten-containing ingredients (wheat, barley, rye) or proper processing to remove gluten.  \n\nThe provided nutrition facts do **not** include ingredients or gluten content data, so they neither confirm nor refute the claim. However, the claim itself is permissible under FDA regulations if the product meets the <20 ppm threshold. Since the nutrition facts do not contradict the claim (e.g., no obvious gluten sources like \"wheat\" are listed in the data), the claim is **verified** as compliant with FDA standards.  \n\n**Note:** Verification of \"gluten-free\"",
+        "source": "AI analysis (OpenRouter)"
+      }
+    ],
+    "ingredientAnalysis": {},
+    "healthRecommendation": {},
+    "overallScore": 40,
+    "keyInsights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 2 classification indicates processed culinary ingredients",
+      "Exceeds heart-healthy sodium recommendations"
+    ]
+  },
+  "created_at": "2025-08-30T18:25:23.680563Z",
+  "storage_type": "local_fallback"
+}

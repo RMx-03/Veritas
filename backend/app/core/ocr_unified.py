@@ -23,6 +23,7 @@ except Exception:
         _enhanced_parse = None
 from .openfoodfacts_lookup import query_openfoodfacts
 from .doctr_api import doctr_api_ocr
+from .mistral_ocr import mistral_api_ocr
 
 # ---- Utilities ----
 def load_image(path_or_bytes):
@@ -193,8 +194,12 @@ def extract_structured_from_image(
                 debug["notes"].append(f"OpenFoodFacts lookup failed: {off.get('error')}")
                 debug["pipeline"].append("OpenFoodFacts:fail")
 
-        # Step 2: Hugging Face DocTR Inference API
-        doc = doctr_api_ocr(image_path_or_bytes)
+        # Step 2: Cloud OCR provider (Hugging Face DocTR or Mistral La Plateforme)
+        provider = (os.getenv("CLOUD_OCR_PROVIDER", "hf") or "hf").lower()
+        if provider == "mistral":
+            doc = mistral_api_ocr(image_path_or_bytes)
+        else:
+            doc = doctr_api_ocr(image_path_or_bytes)
         if doc.get("ok") and (doc.get("text") or "").strip():
             full_text = doc.get("text", "")
             merged = [{"box": (0,0,0,0), "text": line, "conf": 0.85} for line in full_text.splitlines() if line.strip()]
@@ -210,13 +215,19 @@ def extract_structured_from_image(
                     structured = _basic_parse(full_text)
                 except Exception:
                     pass
-            debug["engines"].append("doctr_api")
-            debug["pipeline"].append("DocTR API")
+            if provider == "mistral":
+                debug["engines"].append("mistral")
+                debug["pipeline"].append("Mistral")
+                method_name = "Mistral OCR"
+            else:
+                debug["engines"].append("doctr_api")
+                debug["pipeline"].append("DocTR API")
+                method_name = "DocTR API"
             confidence = "medium" if len(full_text.strip()) > 10 else "low"
             return {
                 "text": full_text,
                 "structured": structured if structured else sections,
-                "method": "DocTR API",
+                "method": method_name,
                 "confidence": confidence,
                 "raw_ocr": merged,
                 "sections": sections,
@@ -224,8 +235,13 @@ def extract_structured_from_image(
             }
         else:
             if not doc.get("ok"):
-                debug["notes"].append(f"DocTR API error: {doc.get('error') or doc.get('details')}")
-            debug["pipeline"].append("DocTR API:fail")
+                err = doc.get('error') or doc.get('details')
+                if provider == "mistral":
+                    debug["notes"].append(f"Mistral OCR error: {err}")
+                    debug["pipeline"].append("Mistral:fail")
+                else:
+                    debug["notes"].append(f"DocTR API error: {err}")
+                    debug["pipeline"].append("DocTR API:fail")
 
         # All tiers failed; return graceful, minimal payload
         return {

@@ -126,11 +126,19 @@ def query_openfoodfacts(
         # Priority 1: Barcode lookup
         if barcode:
             url = f"{base_product_url}{barcode}.json"
-            resp = requests.get(url, timeout=timeout)
-            if resp.status_code == 200:
-                data = resp.json()
-                if data.get("status") == 1 and data.get("product"):
-                    return _extract_structured_from_off_product(data["product"])  # type: ignore
+            try:
+                print(f"[OFF] GET product by barcode url={url}")
+                resp = requests.get(url, timeout=timeout)
+                print(f"[OFF] Response status={resp.status_code}")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("status") == 1 and data.get("product"):
+                        print("[OFF] Product found via barcode")
+                        return _extract_structured_from_off_product(data["product"])  # type: ignore
+                    else:
+                        print(f"[OFF] Barcode not found or product missing (status={data.get('status')})")
+            except Exception as e:
+                print(f"[OFF] Barcode lookup error: {e}")
             # If barcode not found, do not treat as fatal; try name next.
 
         # Priority 2: Name search
@@ -142,13 +150,21 @@ def query_openfoodfacts(
                 "json": 1,
                 "page_size": 1,
             }
-            resp = requests.get(DEFAULT_OFF_SEARCH_URL, params=params, timeout=timeout)
-            if resp.status_code == 200:
-                data = resp.json()
-                prods = data.get("products") or []
-                if prods:
-                    return _extract_structured_from_off_product(prods[0])
+            try:
+                print(f"[OFF] SEARCH name terms='{product_name}'")
+                resp = requests.get(DEFAULT_OFF_SEARCH_URL, params=params, timeout=timeout)
+                print(f"[OFF] Search response status={resp.status_code}")
+                if resp.status_code == 200:
+                    data = resp.json()
+                    prods = data.get("products") or []
+                    print(f"[OFF] Search products count={len(prods)}")
+                    if prods:
+                        print("[OFF] Product found via name search")
+                        return _extract_structured_from_off_product(prods[0])
+            except Exception as e:
+                print(f"[OFF] Name search error: {e}")
 
         return {"ok": False, "error": "not_found"}
     except Exception as e:
+        print(f"[OFF] Unexpected error: {e}")
         return {"ok": False, "error": str(e)}
