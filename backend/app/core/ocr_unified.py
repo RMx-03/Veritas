@@ -130,6 +130,12 @@ def crop_boxes(img: np.ndarray, boxes: List[Tuple[int,int,int,int]]) -> List[np.
 
 # ---- OCR wrappers ----
 def ocr_easyocr(img: np.ndarray, langs: List[str]=["en"]) -> List[Dict]:
+    # Check memory-constrained mode first
+    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
+    if MEMORY_CONSTRAINED_MODE:
+        print("EasyOCR disabled in memory-constrained mode")
+        return []
+    
     if easyocr is None:
         return []
     try:
@@ -148,6 +154,12 @@ def ocr_easyocr(img: np.ndarray, langs: List[str]=["en"]) -> List[Dict]:
         return []
 
 def ocr_paddle(img: np.ndarray) -> List[Dict]:
+    # Check memory-constrained mode first
+    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
+    if MEMORY_CONSTRAINED_MODE:
+        print("PaddleOCR disabled in memory-constrained mode")
+        return []
+    
     if _ensure_paddleocr_loaded() is None:
         return []
     global _paddle_instance
@@ -187,6 +199,12 @@ def ocr_trocr(img: np.ndarray) -> List[Dict]:
     Run TrOCR on the whole image. Returns single-block output (image->text).
     For region-level OCR, crop first and call this per-crop.
     """
+    # Check memory-constrained mode first
+    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
+    if MEMORY_CONSTRAINED_MODE:
+        print("TrOCR disabled in memory-constrained mode")
+        return []
+    
     if _trocr_model is None or _trocr_processor is None:
         return []
     try:

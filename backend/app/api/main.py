@@ -101,16 +101,25 @@ logger = logging.getLogger("uvicorn.error")
 EASYOCR_MODEL_DIR = os.path.expanduser(os.getenv("EASYOCR_MODEL_DIR", os.path.join("~", ".EasyOCR")))
 EASYOCR_DOWNLOAD_ON_DEMAND = os.getenv("EASYOCR_DOWNLOAD_ON_DEMAND", "true").lower() == "true"
 
+# Memory-constrained mode (disable local OCR for 512MB environments like Render free tier)
+MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
+
 # Log resolved config early for deploy verification
 try:
     logger.info(f"[CONFIG] WARMUP_ON_STARTUP={WARMUP_ON_STARTUP} | WARMUP_ENGINES={WARMUP_ENGINES}")
     logger.info(f"[CONFIG] EASYOCR_MODEL_DIR={EASYOCR_MODEL_DIR} | EASYOCR_DOWNLOAD_ON_DEMAND={EASYOCR_DOWNLOAD_ON_DEMAND}")
+    logger.info(f"[CONFIG] MEMORY_CONSTRAINED_MODE={MEMORY_CONSTRAINED_MODE}")
 except Exception:
     pass
 
 async def warmup_ocr_models():
     logger.info("[WARMUP] Starting OCR warmup")
     try:
+        if MEMORY_CONSTRAINED_MODE:
+            logger.info("[WARMUP] Memory-constrained mode enabled - skipping all local OCR engine warmup")
+            logger.info("[WARMUP] Using API-only mode: OpenFoodFacts + DocTR API")
+            return
+            
         if "easyocr" in WARMUP_ENGINES:
             try:
                 import easyocr  # type: ignore

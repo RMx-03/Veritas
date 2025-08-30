@@ -45,6 +45,15 @@ def _preprocess(img: np.ndarray) -> np.ndarray:
 
 
 def easyocr_extract_text(image_path_or_bytes: Union[str, bytes, bytearray], langs: List[str] = ["en"]) -> Dict:
+    # Check for memory-constrained mode first
+    MEMORY_CONSTRAINED_MODE = os.getenv("MEMORY_CONSTRAINED_MODE", "false").lower() == "true"
+    if MEMORY_CONSTRAINED_MODE:
+        try:
+            LOGGER.info("[EASYOCR] Memory-constrained mode enabled - skipping EasyOCR to avoid OOM")
+        except Exception:
+            pass
+        return {"ok": False, "error": "memory_constrained_mode", "details": "EasyOCR disabled in memory-constrained mode"}
+    
     if easyocr is None:
         return {"ok": False, "error": "easyocr_not_available"}
     try:
