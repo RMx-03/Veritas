@@ -74,4 +74,4 @@ micros:
           default: "true"
         - name: WARMUP_ENGINES
           description: "Comma-separated engines to warm (easyocr,paddle)"
-          default: "easyocr,paddle"
+          default: "easyocr"

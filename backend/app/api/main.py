@@ -94,7 +94,7 @@ async def rate_limit(request: Request, call_next):
 # Helps avoid first-request timeouts on platforms like Render where EasyOCR/PaddleOCR
 # download weights on first use.
 WARMUP_ON_STARTUP = os.getenv("WARMUP_ON_STARTUP", "true").lower() == "true"
-WARMUP_ENGINES = [e.strip() for e in os.getenv("WARMUP_ENGINES", "easyocr,paddle").split(",") if e.strip()]
+WARMUP_ENGINES = [e.strip() for e in os.getenv("WARMUP_ENGINES", "easyocr").split(",") if e.strip()]
 logger = logging.getLogger("uvicorn.error")
 
 async def warmup_ocr_models():

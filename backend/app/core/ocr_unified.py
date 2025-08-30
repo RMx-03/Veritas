@@ -14,10 +14,7 @@ try:
 except Exception:
     easyocr = None
 
-try:
-    from paddleocr import PaddleOCR
-except Exception:
-    PaddleOCR = None
+PaddleOCR = None
 
 try:
     # TrOCR via transformers
@@ -46,6 +43,17 @@ from .easyocr_fallback import easyocr_extract_text
 # Cache heavy OCR engine instances so we don't re-create per crop
 _paddle_instance: Optional['PaddleOCR'] = None
 _easy_reader_cache: Dict[str, 'easyocr.Reader'] = {}
+
+def _ensure_paddleocr_loaded():
+    """Lazy-load PaddleOCR only when needed."""
+    global PaddleOCR
+    if PaddleOCR is None:
+        try:
+            from paddleocr import PaddleOCR as _PaddleOCR  # type: ignore
+            PaddleOCR = _PaddleOCR
+        except Exception:
+            PaddleOCR = None
+    return PaddleOCR
 
 # ---- Utilities ----
 def load_image(path_or_bytes):
@@ -140,7 +148,7 @@ def ocr_easyocr(img: np.ndarray, langs: List[str]=["en"]) -> List[Dict]:
         return []
 
 def ocr_paddle(img: np.ndarray) -> List[Dict]:
-    if PaddleOCR is None:
+    if _ensure_paddleocr_loaded() is None:
         return []
     global _paddle_instance
     try:

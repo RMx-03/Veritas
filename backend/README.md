@@ -104,7 +104,7 @@ Key environment variables:
 - `MAX_UPLOAD_MB` - Max upload size in MB for `/analyze` (default: 10).
 - `RATE_LIMIT_PER_MINUTE` - Simple per-IP requests/min limit (default: 120).
 - `WARMUP_ON_STARTUP` - Pre-download OCR models on startup to avoid cold starts (`true`/`false`, default: true).
-- `WARMUP_ENGINES` - Comma-separated OCR engines to warm (`easyocr,paddle`).
+- `WARMUP_ENGINES` - Comma-separated OCR engines to warm (default: `easyocr`). Add `paddle` to also warm PaddleOCR.
 
 ## 🛡️ Security & Performance Middleware
 
@@ -116,7 +116,7 @@ The FastAPI app includes production hardening in `app/api/main.py`:
 - **Request ID**: Every response includes `X-Request-ID` for traceability.
 - **Rate limiting**: In-memory per-IP limiter with 60s window, limit from `RATE_LIMIT_PER_MINUTE`.
 - **Upload size limit**: Enforced in `/analyze` using `MAX_UPLOAD_MB`.
-- **Warmup**: `/warmup` endpoint and optional startup warmup (`WARMUP_ON_STARTUP`, `WARMUP_ENGINES`) for OCR weights.
+- **Warmup**: `/warmup` endpoint and optional startup warmup (`WARMUP_ON_STARTUP`, `WARMUP_ENGINES`) for OCR weights. Default warms EasyOCR only to minimize memory; include `paddle` explicitly if needed.
 
 ## 🧠 Multi-tier OCR Pipeline
 
