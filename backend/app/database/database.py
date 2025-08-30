@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
 
@@ -18,6 +19,10 @@ if SUPABASE_URL and SUPABASE_KEY:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     except Exception as e:
         print(f"Supabase initialization error: {e}")
+
+# Helper to run blocking DB operations in a thread
+async def _db_exec(callable_):
+    return await asyncio.to_thread(callable_)
 
 async def save_analysis_result(analysis_id: str, analysis_data: Dict[str, Any], filename: Optional[str] = None) -> bool:
     """
@@ -36,13 +41,13 @@ async def save_analysis_result(analysis_id: str, analysis_data: Dict[str, Any], 
             "nutrition_facts": analysis_data.get("nutrition_facts", {}),
             "overall_score": analysis_data.get("health_score", {}).get("score", 0),
             "health_recommendation": analysis_data.get("recommendations", []),
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.utcnow().isoformat() + "Z",
+            "updated_at": datetime.utcnow().isoformat() + "Z"
         }
         
         # Insert into database
         try:
-            result = supabase.table("analysis_results").insert(db_data).execute()
+            result = await _db_exec(lambda: supabase.table("analysis_results").insert(db_data).execute())
             
             if result.data:
                 print(f"Analysis {analysis_id} saved successfully")
@@ -53,13 +58,20 @@ async def save_analysis_result(analysis_id: str, analysis_data: Dict[str, Any], 
         except Exception as db_error:
             # Fallback to local storage if database table doesn't exist
             print(f"Database save failed, using local storage: {db_error}")
-            return save_analysis_local(analysis_id, analysis_data, filename)
+            # Prefer in-memory async fallback to avoid blocking
+            mem_ok = await save_analysis_local_memory(analysis_id, analysis_data, filename)
+            # Also try to persist to disk for durability (best-effort)
+            try:
+                file_ok = save_analysis_local_file(analysis_id, analysis_data, filename or "unknown")
+            except Exception as _:
+                file_ok = False
+            return bool(mem_ok or file_ok)
             
     except Exception as e:
         print(f"Database save error: {e}")
         return False
 
-def save_analysis_local(analysis_id: str, analysis_data: Dict[str, Any], filename: str = "") -> bool:
+def save_analysis_local_file(analysis_id: str, analysis_data: Dict[str, Any], filename: str = "") -> bool:
     """
     Fallback: Save analysis to local JSON file when database is unavailable
     """
@@ -77,7 +89,7 @@ def save_analysis_local(analysis_id: str, analysis_data: Dict[str, Any], filenam
             "analysis_id": analysis_id,
             "filename": filename,
             "analysis_data": analysis_data,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.utcnow().isoformat() + "Z",
             "storage_type": "local_fallback"
         }
         
@@ -101,9 +113,9 @@ async def get_analysis_history(limit: int = 10) -> List[Dict[str, Any]]:
         return []
     
     try:
-        result = supabase.table("analysis_results").select(
+        result = await _db_exec(lambda: supabase.table("analysis_results").select(
             "id, filename, overall_score, health_recommendation, created_at"
-        ).order("created_at", desc=True).limit(limit).execute()
+        ).order("created_at", desc=True).limit(limit).execute())
         
         return result.data if result.data else []
         
@@ -119,7 +131,7 @@ async def get_analysis_by_id(analysis_id: str) -> Optional[Dict[str, Any]]:
         return None
     
     try:
-        result = supabase.table("analysis_results").select("*").eq("id", analysis_id).execute()
+        result = await _db_exec(lambda: supabase.table("analysis_results").select("*").eq("id", analysis_id).execute())
         
         if result.data and len(result.data) > 0:
             return result.data[0]
@@ -137,9 +149,9 @@ async def update_analysis_result(analysis_id: str, updated_data: Dict[str, Any])
         return False
     
     try:
-        updated_data["updated_at"] = datetime.utcnow().isoformat()
+        updated_data["updated_at"] = datetime.utcnow().isoformat() + "Z"
         
-        result = supabase.table("analysis_results").update(updated_data).eq("id", analysis_id).execute()
+        result = await _db_exec(lambda: supabase.table("analysis_results").update(updated_data).eq("id", analysis_id).execute())
         
         return bool(result.data)
         
@@ -155,7 +167,7 @@ async def delete_analysis_result(analysis_id: str) -> bool:
         return False
     
     try:
-        result = supabase.table("analysis_results").delete().eq("id", analysis_id).execute()
+        result = await _db_exec(lambda: supabase.table("analysis_results").delete().eq("id", analysis_id).execute())
         return bool(result.data)
         
     except Exception as e:
@@ -171,18 +183,18 @@ async def get_analysis_stats() -> Dict[str, Any]:
     
     try:
         # Get total count
-        count_result = supabase.table("analysis_results").select("id", count="exact").execute()
+        count_result = await _db_exec(lambda: supabase.table("analysis_results").select("id", count="exact").execute())
         total_analyses = count_result.count if count_result.count else 0
         
         # Get average score
-        score_result = supabase.table("analysis_results").select("overall_score").execute()
+        score_result = await _db_exec(lambda: supabase.table("analysis_results").select("overall_score").execute())
         scores = [item["overall_score"] for item in score_result.data if score_result.data]
         avg_score = sum(scores) / len(scores) if scores else 0
         
         # Get recent activity (last 7 days)
         from datetime import timedelta
         week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-        recent_result = supabase.table("analysis_results").select("id", count="exact").gte("created_at", week_ago).execute()
+        recent_result = await _db_exec(lambda: supabase.table("analysis_results").select("id", count="exact").gte("created_at", week_ago).execute())
         recent_count = recent_result.count if recent_result.count else 0
         
         return {
@@ -198,7 +210,7 @@ async def get_analysis_stats() -> Dict[str, Any]:
 # Local fallback storage for when Supabase is not available
 LOCAL_STORAGE = []
 
-async def save_analysis_local(analysis_id: str, analysis_data: Dict[str, Any], filename: Optional[str] = None) -> bool:
+async def save_analysis_local_memory(analysis_id: str, analysis_data: Dict[str, Any], filename: Optional[str] = None) -> bool:
     """
     Fallback: Save analysis to local storage
     """

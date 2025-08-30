@@ -1,6 +1,8 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Request
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 import os
 import tempfile
 import uuid
@@ -10,6 +12,8 @@ from dotenv import load_dotenv
 import asyncio
 import logging
 from fastapi import BackgroundTasks
+from typing import Optional
+from collections import deque, defaultdict
 
 # Ensure environment variables are loaded before importing modules that read them
 load_dotenv()
@@ -25,14 +29,66 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware
+# CORS, Compression, and Security configuration
+# Read allowed origins from environment (comma-separated). Use '*' to allow all.
+ALLOWED_ORIGINS_ENV = os.getenv("ALLOWED_ORIGINS", "*")
+ALLOWED_ORIGINS = ["*"] if ALLOWED_ORIGINS_ENV.strip() in ("*", "") else [o.strip() for o in ALLOWED_ORIGINS_ENV.split(",") if o.strip()]
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "10"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "120"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# GZip response compression (1KB+)
+app.add_middleware(GZipMiddleware, minimum_size=1024)
+
+# Request ID middleware
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = req_id
+    return response
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "accelerometer=(), camera=(), geolocation=()"
+    return response
+
+# Simple in-memory rate limiting per IP (per-process)
+rate_store = defaultdict(deque)
+rate_exempt_paths = {"/health", "/warmup"}
+
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    try:
+        if request.method == "OPTIONS" or request.url.path in rate_exempt_paths:
+            return await call_next(request)
+        # Identify client IP (respect proxies)
+        forwarded = request.headers.get("x-forwarded-for")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
+        window = 60.0
+        now = asyncio.get_event_loop().time()
+        dq = rate_store[client_ip]
+        while dq and now - dq[0] > window:
+            dq.popleft()
+        if len(dq) >= RATE_LIMIT_PER_MINUTE:
+            return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded. Please slow down."})
+        dq.append(now)
+    except Exception:
+        # Fail-open on rate limiter errors
+        pass
+    return await call_next(request)
 
 # ---- Warmup configuration & task (pre-download OCR models) ----
 # Helps avoid first-request timeouts on platforms like Render where EasyOCR/PaddleOCR
@@ -86,7 +142,11 @@ async def manual_warmup(background_tasks: BackgroundTasks):
     return {"started": True, "engines": WARMUP_ENGINES}
 
 @app.post("/analyze")
-async def analyze_food_label(image: UploadFile = File(...)):
+async def analyze_food_label(
+    image: UploadFile = File(...),
+    barcode: Optional[str] = Query(None, description="Optional barcode to prioritize OpenFoodFacts lookup"),
+    product_name: Optional[str] = Query(None, description="Optional product name to try OpenFoodFacts search")
+):
     """
     Analyze a food label image and return comprehensive nutrition analysis
     """
@@ -101,16 +161,18 @@ async def analyze_food_label(image: UploadFile = File(...)):
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
             content = await image.read()
-            # Validate file size (10MB limit) after reading content
-            if len(content) > 10 * 1024 * 1024:
-                raise HTTPException(status_code=400, detail="File size too large (max 10MB)")
+            # Validate file size (configurable limit) after reading content
+            if len(content) > MAX_UPLOAD_MB * 1024 * 1024:
+                raise HTTPException(status_code=400, detail=f"File size too large (max {MAX_UPLOAD_MB}MB)")
             temp_file.write(content)
             temp_file_path = temp_file.name
         
         try:
             # Step 1: Extract OCR + structure via unified pipeline
             print(f"[ANALYZE] Step 1: Starting OCR pipeline for analysis {analysis_id}")
-            ocr_out = extract_structured_from_image(temp_file_path)
+            if barcode or product_name:
+                print(f"[ANALYZE] OpenFoodFacts priority lookup | barcode={barcode} | product_name={product_name}")
+            ocr_out = extract_structured_from_image(temp_file_path, barcode=barcode, product_name=product_name)
             extracted_text = ocr_out.get("text", "")
             structured_data = ocr_out.get("structured", {}) or {}
             ocr_method = ocr_out.get("method", "unknown")
@@ -191,6 +253,11 @@ async def analyze_food_label(image: UploadFile = File(...)):
             status_code=500, 
             detail="An error occurred during analysis. Please try again."
         )
+
+# Validation error handler
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 @app.get("/usage")
 async def usage_root(request: Request):

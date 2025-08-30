@@ -1,0 +1,166 @@
+{
+  "analysis_id": "77467693-2e50-4584-aaf5-3185891c0a3e",
+  "filename": "dafds.png",
+  "analysis_data": {
+    "analysisId": "77467693-2e50-4584-aaf5-3185891c0a3e",
+    "timestamp": "2025-08-30T11:15:46.409883",
+    "extractedText": "Organic Creamy\nTomato Basil Soun\nPacific\nStatement\nNutrition Facts\nFoodSm\nof identity\nAbout 4 servings per container\nServing size\n1 cup (240 mL)\n0\nR G ANIc\nNutrition\nAmount per serving\ninformation\nCalories\n90\nTomato\n% DV*\nBasil Soup\nTotal Fat 2g\n39\nSodium 630mg\n27%\n90 Calories\nVegan\nGluten Free\nTotal Carbohydrate 13g\n5%\nDietary Fiber 2g\n7%\nUSDA\nTotal\n9g\nORGANIC\nIncludes 3g Added Sugars\n6%\nProtein 4g\nIron\n6%\nPotassium 459mg 10%\nNot\nsignificant source of saturated fat;  trans fat; cholesterol,\nvitamin D, and calcium.\nIngredients\nThe % Daily Value (DV) tells you how much & nutrient in a serving\nof food\nImr\ncontributes to a daily diet: 2,000 calories a day is used tor\nChGRedIeNTS: WATER: SOY BASE (WATER, SOYBEANS ) ; TOMATO PASTE ;\nSobergRateSeA Sal5 ONIonepuree; HgholeC Sunelower O\u20ac\nCITRATE, GARLIC PUREE , SPICES' ; RICE FLoUR;, BASIL OlL:,\nNameladdress of\nCONTAINSASOY\nmanufacturer\nCertified\nby: Pacific Foods of\nLLC Tualatin; OR 97062 USA\nOrganic by\nTilth\nSER SERVNG\n32FL.OZ (1 Q1) 946mL\nNet\ncontents\nSugars\n1mg\nCANE '\n\"ORCANIC\nDistributed\n{Oregon;\nOregon !",
+    "nutrition_facts": {
+      "calories": 0.0,
+      "serving_size": "information",
+      "total_fat": 2.0,
+      "sodium": 630.0,
+      "total_carbs": 13.0,
+      "dietary_fiber": 2.0,
+      "protein": 4.0,
+      "potassium": 459.0
+    },
+    "scientific_analysis": {
+      "nutrient_density_score": 0.0,
+      "processing_level": "processed",
+      "nova_classification": 2,
+      "macronutrient_balance": {
+        "protein_percent": 0,
+        "carb_percent": 0,
+        "fat_percent": 0,
+        "balance_score": 0
+      },
+      "additive_risk_score": 0,
+      "ingredient_complexity_index": 2.4,
+      "evidence_based_insights": {
+        "key_findings": [
+          "Low nutrient density (0.0) suggests limited nutritional benefits",
+          "NOVA Group 2 classification indicates processed culinary ingredients",
+          "Exceeds heart-healthy sodium recommendations"
+        ],
+        "health_benefits": [
+          "Minimally processed with basic culinary modifications",
+          "Low sugar content supports stable blood glucose levels"
+        ],
+        "health_concerns": [
+          "Poor nutritional value relative to calorie content - mostly empty calories",
+          "Low protein content - consider pairing with protein-rich foods",
+          "High sodium content (630.0mg) may contribute to hypertension and cardiovascular risk"
+        ],
+        "consumption_recommendations": [
+          "Consume occasionally - limit to 2-3 times per week maximum",
+          "Consider healthier alternatives when possible"
+        ]
+      }
+    },
+    "health_score": {
+      "score": 40,
+      "level": "poor",
+      "factors": [
+        "Low nutrient density (0.0) suggests limited nutritional benefits",
+        "NOVA Group 2 classification indicates processed culinary ingredients",
+        "Exceeds heart-healthy sodium recommendations"
+      ]
+    },
+    "health_impact_assessment": {
+      "cardiovascular": "MODERATE RISK (high sodium)",
+      "metabolic": "FAVORABLE",
+      "digestive": "NEUTRAL",
+      "inflammatory": "NEUTRAL"
+    },
+    "ingredients_analysis": {},
+    "claim_verification": [
+      {
+        "claim": "Vegan",
+        "status": "misleading",
+        "explanation": "**Analysis:**  \nThe claim **\"Vegan\"** is **2. Misleading** (technically true but potentially deceptive).  \n\n**Explanation:**  \n1. **Vegan Definition**: A \"vegan\" claim implies the product contains no animal-derived ingredients. However, **nutrition facts alone cannot confirm this**, as they do not list ingredients (e.g., gelatin, dairy, or honey could be absent from the nutrient breakdown but still present in the product).  \n2. **Serving Size Ambiguity**: The serving size is listed as \"information,\" which is non-standard and raises concerns about transparency. FDA regulations require clear serving size declarations (e.g., \"1 cup\" or \"30g\").  \n3. **Calorie Inconsistency**: The label states **0.0 calories**, but the listed nutrients (2g fat, 13g carbs, 4g protein) would equate to ~84 calories (fat: 2g \u00d7 9 kcal/g",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Organic",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Added",
+        "status": "misleading",
+        "explanation": "**Conclusion:** 2. Misleading (technically true but potentially deceptive)\n\n**Explanation:**  \nThe claim \"Added\" is incomplete and ambiguous. FDA regulations require nutrient content claims (e.g., \"Added Fiber\" or \"Added Protein\") to specify the nutrient being referenced and meet defined criteria. Here are the key issues:  \n\n1. **Lack of Specificity:** The term \"Added\" alone does not clarify what component is being added (e.g., vitamins, fiber, sugars). This vagueness fails FDA transparency standards.  \n2. **Nutritional Context:**  \n   - **Fiber:** The product contains **2g dietary fiber**, insufficient to qualify for an \"Added Fiber\" claim (FDA requires \u22652.5g per serving for \"Good Source of Fiber\").  \n   - **Sodium:** High sodium (630mg, ~27% DV) contradicts implicit healthiness of an \"Added\" claim.  \n   - **Protein:** 4g",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Gluten Free",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      }
+    ],
+    "key_insights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 2 classification indicates processed culinary ingredients",
+      "Exceeds heart-healthy sodium recommendations"
+    ],
+    "recommendations": [
+      "Consume occasionally - limit to 2-3 times per week maximum",
+      "Consider healthier alternatives when possible"
+    ],
+    "ai_recommendation": {
+      "level": "avoid",
+      "summary": "**Comprehensive Nutritional Analysis of Food Product**  \n**PhD Food Scientist & Registered Dietitian Evaluation**  \n\n---\n\n### **1. Nutrient Density Evaluation**  \n**Nutrient Density Score:** Cannot be calculated due to invalid caloric declaration (0 kcal/serving). Assuming energy content from macron",
+      "reasons": [
+        "- 630mg/serving contributes to 27% DV. Associated with 17% increased hypertension risk per 1,000mg excess sodium (He et al., 2013).",
+        "**Cardiovascular Risk:**",
+        "- Low saturated fat (0g) beneficial, but high sodium elevates hypertension risk."
+      ],
+      "tips": [
+        "- Sodium: 27% DV (630mg) exceeds WHO\u2019s recommended <2,000mg/day for cardiovascular health.",
+        "- Fiber: 7% DV (2g) below Institute of Medicine\u2019s 25\u201338g/day recommendation."
+      ],
+      "insights": [],
+      "aiAnalysis": "**Comprehensive Nutritional Analysis of Food Product**  \n**PhD Food Scientist & Registered Dietitian Evaluation**  \n\n---\n\n### **1. Nutrient Density Evaluation**  \n**Nutrient Density Score:** Cannot be calculated due to invalid caloric declaration (0 kcal/serving). Assuming energy content from macronutrients:  \n- Calculated Calories: (2g fat \u00d7 9) + (13g carbs \u00d7 4) + (4g protein \u00d7 4) = **86 kcal/serving** (likely rounded down to 0 due to FDA labeling rules for values <5 kcal).  \n- Nutrient Density (per 100 kcal):  \n  - Fiber: 2.3g (9% DV)  \n  - Protein: 4.7g (9% DV)  \n  - Potassium: 534mg (11% DV)  \n  - Sodium: 733mg (32% DV)  \n\n**Macronutrient Distribution vs. AMDR:**  \n- Fat: 21% kcal (AMDR: 20\u201335%)  \n- Carbs: 60% kcal (AMDR: 45\u201365%)  \n- Protein: 19% kcal (AMDR: 10\u201335%)  \n*Within AMDR ranges.*  \n\n**Micronutrient Contributions (per serving):**  \n- Sodium: 27% DV (630mg) exceeds WHO\u2019s recommended <2,000mg/day for cardiovascular health.  \n- Potassium: 10% DV (459mg) suboptimal vs. USDA\u2019s 4,700mg/day target.  \n- Fiber: 7% DV (2g) below Institute of Medicine\u2019s 25\u201338g/day recommendation.  \n\n---\n\n### **2. Biochemical Impact Assessment**  \n**Glycemic Response:**  \n- Net carbs: 11g (13g total carbs \u2013 2g fiber). Low glycemic load (GL = 6; GL <10 = low impact). Suitable for diabetics.  \n\n**Lipid Metabolism:**  \n- 2g total fat (0g saturated). Sunflower oil (ingredient list) provides omega-6 fatty acids. Imbalanced omega-6:omega-3 ratio may promote inflammation if not offset by omega-3 sources (Simopoulos, 2016).  \n\n**Protein Quality:**  \n- Soy protein is complete (contains all essential amino acids). PDCAAS = 1.0 (gold standard).  \n\n**Sodium Impact:**  \n- 630mg/serving contributes to 27% DV. Associated with 17% increased hypertension risk per 1,000mg excess sodium (He et al., 2013).  \n\n---\n\n### **3. NOVA Classification & Processing Analysis**  \n**NOVA Class:** **Processed food (Group 3)**. Contains processed ingredients (tomato paste, soy base, sunflower oil) but no artificial additives. Organic certification suggests minimal synthetic inputs.  \n\n**Ultra-Processed Indicators:**  \n- None detected. Absence of hydrolyzed proteins, emulsifiers, or artificial flavors.  \n\n**Preservation Methods:**  \n- Acidic tomato paste (pH <4.6) and thermal processing likely used, which preserve nutrients but may reduce heat-sensitive vitamins (e.g., vitamin C).  \n\n---\n\n### **4. Pathophysiological Considerations**  \n**Cardiovascular Risk:**  \n- Low saturated fat (0g) beneficial, but high sodium elevates hypertension risk.  \n\n**Diabetes/Metabolic Syndrome:**  \n- Low sugar (0g), moderate fiber (2g). GL of 6 aligns with ADA guidelines for glycemic control.  \n\n**Inflammation Potential:**  \n- Sunflower oil (high omega-6) may exacerbate inflammation if dietary omega-3 intake is insufficient (Calder, 2017).  \n\n**Digestive Health:**  \n- Moderate fiber supports gut motility. No artificial additives reduce IBS trigger risks.  \n\n---\n\n### **5. Population-Specific Recommendations**  \n- **Hypertension/CVD:** Limit intake due to sodium; pair with high-potassium foods (e.g., spinach).  \n- **Athletes:** Insufficient protein (4g/serving) for muscle repair; supplement with lean meats or legumes.  \n- **Elderly:** Adequate protein for sarcopenia prevention but monitor sodium.  \n- **Weight Management:** Low energy density (86 kcal/serving) supports satiety with portion control.  \n\n---\n\n### **6. Scientific Evidence & Regulatory Compliance**  \n- **FDA Compliance:** \"0 kcal\" label compliant if true energy <5 kcal/serving (21 CFR 101.9). Calculated 86 kcal suggests non-compliance.  \n- **DASH Diet Alignment:** Exceeds sodium limits (DASH target: <2,300mg/day).  \n- **Epidemiological Data:** High processed food intake correlates with 25% increased CVD risk (Monteiro et al., 2019).  \n\n---\n\n### **7. Quantitative Health Score**  \n**62/100**  \n- Strengths: Low saturated fat, complete protein, no added sugars.  \n- Weaknesses: High sodium, low micronutrient density, questionable caloric labeling.  \n\n---\n\n### **8. Evidence-Based Recommendations**  \n- **Consumption Frequency:** \u22643 servings/week for normotensive adults; avoid for hypertensive individuals.  \n- **Synergistic Pairings:** Add kale (vitamin K, potassium) and chia seeds (omega-3) to balance sodium and fatty acids.  \n- **Healthier Alternatives:** Seek low-sodium (<140mg/serving) soups with added vegetables or legumes.  \n- **Meal Context:** Serve with whole grains (quinoa, brown rice) to enhance fiber and nutrient diversity.  \n\n**References**  \n- He FJ et al. (2013). *BMJ*.  \n- Calder PC (2017). *Proc Nutr Soc*.  \n- Monteiro CA et al. (2019). *Public Health Nutr*.  \n\n--- \n\nThis analysis adheres to USDA, WHO, and FDA guidelines while integrating peer-reviewed biochemical and epidemiological evidence."
+    },
+    "overall_score": 40,
+    "processedImage": null,
+    "nutritionFacts": {
+      "calories": 0.0,
+      "serving_size": "information",
+      "total_fat": 2.0,
+      "sodium": 630.0,
+      "total_carbs": 13.0,
+      "dietary_fiber": 2.0,
+      "protein": 4.0,
+      "potassium": 459.0
+    },
+    "claimVerification": [
+      {
+        "claim": "Vegan",
+        "status": "misleading",
+        "explanation": "**Analysis:**  \nThe claim **\"Vegan\"** is **2. Misleading** (technically true but potentially deceptive).  \n\n**Explanation:**  \n1. **Vegan Definition**: A \"vegan\" claim implies the product contains no animal-derived ingredients. However, **nutrition facts alone cannot confirm this**, as they do not list ingredients (e.g., gelatin, dairy, or honey could be absent from the nutrient breakdown but still present in the product).  \n2. **Serving Size Ambiguity**: The serving size is listed as \"information,\" which is non-standard and raises concerns about transparency. FDA regulations require clear serving size declarations (e.g., \"1 cup\" or \"30g\").  \n3. **Calorie Inconsistency**: The label states **0.0 calories**, but the listed nutrients (2g fat, 13g carbs, 4g protein) would equate to ~84 calories (fat: 2g \u00d7 9 kcal/g",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Organic",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Added",
+        "status": "misleading",
+        "explanation": "**Conclusion:** 2. Misleading (technically true but potentially deceptive)\n\n**Explanation:**  \nThe claim \"Added\" is incomplete and ambiguous. FDA regulations require nutrient content claims (e.g., \"Added Fiber\" or \"Added Protein\") to specify the nutrient being referenced and meet defined criteria. Here are the key issues:  \n\n1. **Lack of Specificity:** The term \"Added\" alone does not clarify what component is being added (e.g., vitamins, fiber, sugars). This vagueness fails FDA transparency standards.  \n2. **Nutritional Context:**  \n   - **Fiber:** The product contains **2g dietary fiber**, insufficient to qualify for an \"Added Fiber\" claim (FDA requires \u22652.5g per serving for \"Good Source of Fiber\").  \n   - **Sodium:** High sodium (630mg, ~27% DV) contradicts implicit healthiness of an \"Added\" claim.  \n   - **Protein:** 4g",
+        "source": "AI analysis (OpenRouter)"
+      },
+      {
+        "claim": "Gluten Free",
+        "status": "unknown",
+        "explanation": "",
+        "source": "AI analysis (OpenRouter)"
+      }
+    ],
+    "ingredientAnalysis": {},
+    "healthRecommendation": {},
+    "overallScore": 40,
+    "keyInsights": [
+      "Low nutrient density (0.0) suggests limited nutritional benefits",
+      "NOVA Group 2 classification indicates processed culinary ingredients",
+      "Exceeds heart-healthy sodium recommendations"
+    ]
+  },
+  "created_at": "2025-08-30T11:15:47.726498Z",
+  "storage_type": "local_fallback"
+}

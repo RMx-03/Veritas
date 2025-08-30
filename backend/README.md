@@ -95,9 +95,53 @@ Key environment variables:
 - `SUPABASE_ANON_KEY` - Database access key
 
 ### Optional
-- `HUGGINGFACE_API_KEY` - Enhanced OCR capabilities
+- `HUGGINGFACE_API_KEY` - Used by the DocTR OCR API tier
 - `USDA_API_KEY` - USDA nutrition database access
 - `OCR_ENGINE` - OCR engine selection (default: advanced)
+- `OPENFOODFACTS_BASE_URL` - Base URL for OpenFoodFacts product endpoint (default: https://world.openfoodfacts.org/api/v0/product/)
+- `DOCTR_API_MODEL` - HF model for OCR via API (default: microsoft/trocr-small-printed)
+- `ALLOWED_ORIGINS` - Comma-separated list of allowed origins for CORS. Use `*` only in development.
+- `MAX_UPLOAD_MB` - Max upload size in MB for `/analyze` (default: 10).
+- `RATE_LIMIT_PER_MINUTE` - Simple per-IP requests/min limit (default: 120).
+- `WARMUP_ON_STARTUP` - Pre-download OCR models on startup to avoid cold starts (`true`/`false`, default: true).
+- `WARMUP_ENGINES` - Comma-separated OCR engines to warm (`easyocr,paddle`).
+
+## 🛡️ Security & Performance Middleware
+
+The FastAPI app includes production hardening in `app/api/main.py`:
+
+- **CORS**: Configurable via `ALLOWED_ORIGINS` (comma-separated). Defaults to `*` in dev.
+- **GZip compression**: Added for responses >= 1KB.
+- **Security headers**: `X-Content-Type-Options=nosniff`, `X-Frame-Options=DENY`, `Referrer-Policy=no-referrer`, `Permissions-Policy` restrictions.
+- **Request ID**: Every response includes `X-Request-ID` for traceability.
+- **Rate limiting**: In-memory per-IP limiter with 60s window, limit from `RATE_LIMIT_PER_MINUTE`.
+- **Upload size limit**: Enforced in `/analyze` using `MAX_UPLOAD_MB`.
+- **Warmup**: `/warmup` endpoint and optional startup warmup (`WARMUP_ON_STARTUP`, `WARMUP_ENGINES`) for OCR weights.
+
+## 🧠 Multi-tier OCR Pipeline
+
+The OCR/data retrieval now follows a low-memory, API-first chain:
+
+1. OpenFoodFacts lookup (if `barcode` or `product_name` provided) – returns structured data and skips OCR when found.
+2. Hugging Face Inference API (DocTR) – uses `HUGGINGFACE_API_KEY` and `DOCTR_API_MODEL`.
+3. Local EasyOCR fallback – runs on CPU, low footprint.
+
+Each tier logs which method was used and gracefully falls back on errors or rate limits. See `app/core/ocr_unified.py`.
+
+### /analyze usage with optional lookup hints
+
+`POST /analyze` accepts two optional query params:
+
+- `barcode`: e.g. `barcode=737628064502`
+- `product_name`: e.g. `product_name=Kind Dark Chocolate Nuts & Sea Salt`
+
+Example (curl):
+
+```bash
+curl -X POST "http://localhost:8000/analyze?barcode=737628064502" \
+  -H "Content-Type: multipart/form-data" \
+  -F "image=@path/to/label.jpg"
+```
 
 ## 📁 Module Overview
 

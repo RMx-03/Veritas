@@ -28,8 +28,11 @@ micros:
           description: "HuggingFace API key for OCR (TrOCR/Donut)"
           default: ""
         - name: OCR_ENGINE
-          description: "OCR engine to use: trocr or donut"
-          default: "trocr"
+          description: "OCR engine to use: advanced, easyocr, paddle, or tesseract"
+          default: "advanced"
+        - name: OCR_ENGINE_ADVANCED
+          description: "Advanced OCR pipeline mode: hybrid, easyocr, paddle"
+          default: "hybrid"
         - name: HF_TROCR_MODEL
           description: "Hugging Face TrOCR model id"
           default: "microsoft/trocr-large-printed"
@@ -51,3 +54,24 @@ micros:
         - name: USDA_API_KEY
           description: "USDA API key (optional)"
           default: ""
+        - name: OPENFOODFACTS_BASE_URL
+          description: "OpenFoodFacts product API base URL"
+          default: "https://world.openfoodfacts.org/api/v0/product/"
+        - name: DOCTR_API_MODEL
+          description: "DocTR model id for HF Inference API OCR"
+          default: "microsoft/trocr-small-printed"
+        - name: ALLOWED_ORIGINS
+          description: "Comma-separated allowed origins for CORS (use '*' only in development)"
+          default: "*"
+        - name: MAX_UPLOAD_MB
+          description: "Max upload size in MB for /analyze"
+          default: "10"
+        - name: RATE_LIMIT_PER_MINUTE
+          description: "Per-IP requests per minute limit"
+          default: "120"
+        - name: WARMUP_ON_STARTUP
+          description: "Warm up OCR engines on startup (true/false)"
+          default: "true"
+        - name: WARMUP_ENGINES
+          description: "Comma-separated engines to warm (easyocr,paddle)"
+          default: "easyocr,paddle"

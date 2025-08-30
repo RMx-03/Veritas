@@ -92,7 +92,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                 "nutrient_density_score": scientific_analysis.get('scientific_analysis', {}).get('nutrient_density_score', 0),
                 "processing_level": scientific_analysis.get('scientific_analysis', {}).get('processing_level', 'ultra_processed'),
                 "nova_classification": scientific_analysis.get('scientific_analysis', {}).get('nova_classification', 4),
-                "macronutrient_balance": scientific_analysis.get('macronutrient_balance', {}),
+                "macronutrient_balance": scientific_analysis.get('scientific_analysis', {}).get('macronutrient_balance', {}),
                 "additive_risk_score": scientific_analysis.get('scientific_analysis', {}).get('additive_risk_score', 0),
                 "ingredient_complexity_index": scientific_analysis.get('ingredient_analysis', {}).get('complexity_index', 0),
                 "evidence_based_insights": scientific_analysis.get('evidence_based_insights', {})
@@ -108,6 +108,7 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
             "key_insights": scientific_analysis.get('evidence_based_insights', {}).get('key_findings', []),
             "recommendations": scientific_analysis.get('evidence_based_insights', {}).get('consumption_recommendations', []),
             "ai_recommendation": ai_recommendation,
+            "overall_score": scientific_analysis.get('overall_score', 50),
             "analysis_timestamp": asyncio.get_event_loop().time(),
             "processing_notes": {
                 "ocr_confidence": "high" if len(raw_text) > 100 else "medium",
@@ -166,6 +167,14 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
             
             elapsed_fallback = asyncio.get_event_loop().time() - start_time
             fallback_claims = await verify_health_claims(claims, nutrition_facts)
+            # Try to still get AI recommendation in fallback path
+            ai_rec = None
+            try:
+                if or_client:
+                    ai_rec = await get_ai_health_recommendation(structured_data, raw_text)
+            except Exception as ai_err:
+                logger.warning(f"AI recommendation in fallback failed: {ai_err}")
+
             return {
                 "nutrition_facts": nutrition_facts,
                 "ingredients_analysis": ingredient_analysis,
@@ -174,9 +183,11 @@ async def analyze_nutrition_data(structured_data: Dict[str, Any], raw_text: str 
                     "level": "moderate" if score >= 40 else "poor",
                     "factors": key_insights
                 },
+                "overall_score": score,
                 "key_insights": key_insights,
                 "recommendations": ["Consume in moderation", "Consider healthier alternatives"],
                 "claim_verification": fallback_claims,
+                "ai_recommendation": ai_rec,
                 "error": "Scientific analysis failed - using enhanced fallback",
                 "analysis_timestamp": asyncio.get_event_loop().time(),
                 "processing_notes": {

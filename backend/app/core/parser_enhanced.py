@@ -63,8 +63,8 @@ class NutritionParser:
         return {
             'calories': [
                 r'calories?\s*(?:per serving|from fat)?\s*[:.]?\s*(\d+(?:\.\d+)?)',
-                r'energy\s*[:.]?\s*(\d+(?:\.\d+)?)\s*(?:kcal|cal)',
-                r'(\d+(?:\.\d+)?)\s*(?:kcal|cal|calories?)'
+                r'energy\s*[:.]?\s*(\d+(?:\.\d+)?)\s*(?:kcal|cal)\b',
+                r'(\d+(?:\.\d+)?)\s*(?:kcal|cal|calories?)\b'
             ],
             'serving_info': [
                 r'serving size\s*[:.]?\s*([^\n\r]+?)(?:\n|\r|$)',
@@ -242,16 +242,23 @@ class NutritionParser:
         # Handle case where text might not have nutrition facts table
         if not any(keyword in text.lower() for keyword in ['calories', 'nutrition facts', 'total fat', 'protein', 'carbs', 'sodium']):
             logger.info("No nutrition facts table detected in text, returning basic info")
-            # Try to extract any numeric values that might be nutrition-related
-            numbers = re.findall(r'(\d+(?:\.\d+)?)', text)
-            if numbers:
-                # Make educated guesses based on typical ranges
-                for num_str in numbers[:3]:  # Look at first few numbers
-                    num = float(num_str)
-                    if 50 <= num <= 800 and 'calories' not in nutrition_facts:  # Typical calorie range
-                        nutrition_facts['calories'] = num
-                    elif 0 <= num <= 50 and 'total_fat' not in nutrition_facts:  # Typical fat range
-                        nutrition_facts['total_fat'] = num
+            # Only infer calories from lines that explicitly mention calories/kcal to avoid serving-size misparse
+            for line in text.splitlines():
+                lower = line.lower()
+                # Gate by explicit tokens using word boundaries to avoid 'calcium'
+                if re.search(r'\b(calories?|kcal|cal)\b', lower):
+                    # Avoid false positives like 'calcium'
+                    if 'calcium' in lower:
+                        continue
+                    m = re.search(r'(\d+(?:\.\d+)?)\s*(?:kcal|cal|calories?)\b', line, re.IGNORECASE)
+                    if m:
+                        try:
+                            val = float(m.group(1))
+                            if 0 <= val <= 2000:
+                                nutrition_facts['calories'] = val
+                                break
+                        except ValueError:
+                            pass
             return nutrition_facts
         
         # Parse each category
@@ -269,6 +276,14 @@ class NutritionParser:
                             value = float(match.group(1))
                             
                             if category == 'calories':
+                                # Avoid mis-parsing 'calcium' as calories
+                                full_match_lower = match.group(0).lower()
+                                if 'calcium' in full_match_lower:
+                                    continue
+                                # Handle 'calories from fat'
+                                if 'from fat' in full_match_lower:
+                                    nutrition_facts['calories_from_fat'] = value
+                                    continue
                                 nutrition_facts['calories'] = value
                             elif category == 'fat':
                                 if 'total fat' in match.group(0).lower():
@@ -477,10 +492,14 @@ def parse_nutrition_data_enhanced(text: str) -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Enhanced parsing failed: {e}")
-        
-        # Fallback to basic parsing
-        from parser import parse_nutrition_data
-        return parse_nutrition_data(text)
+        # Safe minimal fallback to avoid import errors and ensure backend stability
+        return {
+            'nutrition_facts': {},
+            'ingredients': [],
+            'allergens': [],
+            'claims': [],
+            'raw_text': text or ''
+        }
 
 # Backward compatibility
 def parse_nutrition_data(text: str) -> Dict[str, Any]:

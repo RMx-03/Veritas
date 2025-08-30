@@ -491,7 +491,12 @@ class FoodScientistAnalyzer:
                 'calcium': nutrition_facts.get('calcium', 0) or 0,
                 'iron': nutrition_facts.get('iron', 0) or 0,
             },
-            caloric_efficiency=round(nutrient_density / (nutrition_facts.get('calories', 1) / 100), 2),
+            caloric_efficiency=(
+                round(
+                    nutrient_density / (((nutrition_facts.get('calories') or 0) / 100)),
+                    2
+                ) if (nutrition_facts.get('calories') or 0) > 0 else 0.0
+            ),
             
             beneficial_ingredients=beneficial_ing,
             concerning_ingredients=concerning_ing,

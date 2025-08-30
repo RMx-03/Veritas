@@ -8,6 +8,7 @@ import asyncio
 import json
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+import pytest
 
 load_dotenv()
 
@@ -17,6 +18,16 @@ OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1")
 OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL")
 OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME")
 
+# Mark as integration and skip by default unless explicitly enabled
+pytestmark = pytest.mark.integration
+RUN_OPENROUTER_TESTS = os.getenv("RUN_OPENROUTER_TESTS", "false").lower() in ("1", "true", "yes", "y")
+if not RUN_OPENROUTER_TESTS:
+    pytest.skip(
+        "Skipping OpenRouter integration tests by default. Set RUN_OPENROUTER_TESTS=true to enable.",
+        allow_module_level=True,
+    )
+
+@pytest.mark.asyncio
 async def test_openrouter_connection():
     """Test basic OpenRouter API connection"""
     
@@ -66,6 +77,7 @@ async def test_openrouter_connection():
         print(f"❌ OpenRouter API Error: {e}")
         return False
 
+@pytest.mark.asyncio
 async def test_nutrition_analysis():
     """Test nutrition analysis with sample data"""
     
@@ -78,7 +90,7 @@ async def test_nutrition_analysis():
     print(f"   Ingredients: {ingredients}")
     
     try:
-        from analyzer import analyze_nutrition_data
+        from app.core.analyzer import analyze_nutrition_data
         
         structured_data = {
             "nutrition_facts": nutrition_facts,

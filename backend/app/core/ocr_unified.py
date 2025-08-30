@@ -39,6 +39,9 @@ except Exception:
     except Exception:
         _basic_parse = None
         _enhanced_parse = None
+from .openfoodfacts_lookup import query_openfoodfacts
+from .doctr_api import doctr_api_ocr
+from .easyocr_fallback import easyocr_extract_text
 
 # Cache heavy OCR engine instances so we don't re-create per crop
 _paddle_instance: Optional['PaddleOCR'] = None
@@ -246,7 +249,11 @@ def split_to_sections(merged_texts: List[Dict]) -> Dict[str, str]:
     return sections
 
 # ---- Main pipeline function ----
-def extract_structured_from_image(image_path_or_bytes: Union[str, bytes]) -> Dict:
+def extract_structured_from_image(
+    image_path_or_bytes: Union[str, bytes],
+    barcode: Optional[str] = None,
+    product_name: Optional[str] = None,
+) -> Dict:
     """
     Returns:
     {
@@ -255,121 +262,109 @@ def extract_structured_from_image(image_path_or_bytes: Union[str, bytes]) -> Dic
       "debug": {infos}
     }
     """
-    debug = {"engines": [], "notes": []}
+    debug = {"engines": [], "notes": [], "pipeline": []}
     try:
-        img = load_image(image_path_or_bytes)
-        pre = preprocess_image_for_ocr(img)
-        # detect boxes
-        boxes = detect_text_contours(pre)
-        crops = crop_boxes(pre, boxes)
-        all_box_results = []
-        # for each crop, run recognizers (Paddle, TrOCR, EasyOCR) in order
-        for i, crop in enumerate(crops):
-            engine_res = []
-            box_tuple = boxes[i]
-            # Paddle
-            if PaddleOCR is not None:
+        # Step 1: OpenFoodFacts (skip OCR if product is found)
+        if barcode or product_name:
+            off = query_openfoodfacts(barcode=barcode, product_name=product_name)
+            if off.get("ok"):
+                text = off.get("text", "") or ""
+                merged = [{"box": (0,0,0,0), "text": line, "conf": 0.99} for line in text.splitlines() if line.strip()]
+                sections = split_to_sections(merged)
+                structured = off.get("structured") or {}
+                debug["engines"].append("openfoodfacts")
+                debug["pipeline"].append("OpenFoodFacts")
+                return {
+                    "text": text,
+                    "structured": structured if structured else sections,
+                    "method": "OpenFoodFacts",
+                    "confidence": "high",
+                    "raw_ocr": merged,
+                    "sections": sections,
+                    "debug": debug,
+                }
+            else:
+                debug["notes"].append(f"OpenFoodFacts lookup failed: {off.get('error')}")
+                debug["pipeline"].append("OpenFoodFacts:fail")
+
+        # Step 2: Hugging Face DocTR Inference API
+        doc = doctr_api_ocr(image_path_or_bytes)
+        if doc.get("ok") and (doc.get("text") or "").strip():
+            full_text = doc.get("text", "")
+            merged = [{"box": (0,0,0,0), "text": line, "conf": 0.85} for line in full_text.splitlines() if line.strip()]
+            sections = split_to_sections(merged)
+            structured = {}
+            if ENHANCED_PARSER and _enhanced_parse:
                 try:
-                    cres = ocr_paddle(crop)
-                    if cres:
-                        engine_res.extend([{"text": r["text"], "conf": r.get("conf",0.0)} for r in cres])
-                        debug["engines"].append("paddle")
-                except Exception as e:
-                    debug["notes"].append(f"paddle error: {e}")
-            # TrOCR per crop if available
-            if VisionEncoderDecoderModel is not None and TrOCRProcessor is not None and torch is not None:
+                    structured = _enhanced_parse(full_text)
+                except Exception:
+                    pass
+            elif not ENHANCED_PARSER and '_basic_parse' in globals() and _basic_parse:
                 try:
-                    if _trocr_model is None:
-                        init_trocr()
-                    tres = ocr_trocr(crop)
-                    if tres:
-                        engine_res.extend([{"text": r["text"], "conf": r.get("conf",0.0)} for r in tres])
-                        debug["engines"].append("trocr")
-                except Exception as e:
-                    debug["notes"].append(f"trocr error: {e}")
-            # EasyOCR
-            if easyocr is not None:
-                try:
-                    eres = ocr_easyocr(crop)
-                    if eres:
-                        engine_res.extend([{"text": r["text"], "conf": r.get("conf",0.0)} for r in eres])
-                        debug["engines"].append("easyocr")
-                except Exception as e:
-                    debug["notes"].append(f"easyocr error: {e}")
-            # fallback empty
-            all_box_results.append((box_tuple, engine_res))
-        # Also, run a whole-image OCR fallback (for labels where detection misses)
-        whole_img_results = []
-        if VisionEncoderDecoderModel is not None and TrOCRProcessor is not None and torch is not None:
-            try:
-                if _trocr_model is None:
-                    init_trocr()
-                wres = ocr_trocr(pre)
-                whole_img_results.extend(wres)
-                debug["engines"].append("trocr_whole")
-            except Exception as e:
-                debug["notes"].append(f"trocr whole error: {e}")
-        if easyocr is not None and not whole_img_results:
-            try:
-                wres = ocr_easyocr(pre)
-                whole_img_results.extend(wres)
-                debug["engines"].append("easyocr_whole")
-            except Exception as e:
-                debug["notes"].append(f"easyocr whole error: {e}")
-
-        merged = merge_ocr_results(all_box_results)
-        # if merged is empty, use whole image text as fallback
-        if not merged and whole_img_results:
-            merged = [{"box": (0,0,pre.shape[1], pre.shape[0]), "text": r["text"], "conf": r.get("conf",0.0)} for r in whole_img_results]
-
-        sections = split_to_sections(merged)
-
-        # Build backward-compatible structured nutrition object if parser available
-        structured = {}
-        full_text = "\n".join([m["text"] for m in merged]) if merged else ""
-        if ENHANCED_PARSER and _enhanced_parse:
-            try:
-                structured = _enhanced_parse(full_text)
-            except Exception:
-                pass
-        elif not ENHANCED_PARSER and '_basic_parse' in globals() and _basic_parse:
-            try:
-                structured = _basic_parse(full_text)
-            except Exception:
-                pass
-
-        # Determine primary method heuristically based on engines used
-        method_priority = [
-            ("paddle", "PaddleOCR"),
-            ("trocr", "TrOCR"),
-            ("easyocr", "EasyOCR"),
-        ]
-        chosen_method = "unknown"
-        for key, label in method_priority:
-            if any(key in e for e in debug["engines"]):
-                chosen_method = label
-                break
-
-        # Confidence heuristic: number of boxes + presence of high-confidence engines
-        if chosen_method in ("PaddleOCR", "TrOCR") and len(merged) >= 3:
-            confidence = "high"
-        elif len(merged) >= 1:
-            confidence = "medium"
+                    structured = _basic_parse(full_text)
+                except Exception:
+                    pass
+            debug["engines"].append("doctr_api")
+            debug["pipeline"].append("DocTR API")
+            confidence = "medium" if len(full_text.strip()) > 10 else "low"
+            return {
+                "text": full_text,
+                "structured": structured if structured else sections,
+                "method": "DocTR API",
+                "confidence": confidence,
+                "raw_ocr": merged,
+                "sections": sections,
+                "debug": debug,
+            }
         else:
-            confidence = "low"
+            if not doc.get("ok"):
+                debug["notes"].append(f"DocTR API error: {doc.get('error') or doc.get('details')}")
+            debug["pipeline"].append("DocTR API:fail")
 
-        # Original style return (for existing API code)
-        compatibility_payload = {
-            "text": full_text,
-            "structured": structured if structured else sections,
-            "method": chosen_method,
-            "confidence": confidence,
-            # Extended debug info retained
-            "raw_ocr": merged,
-            "sections": sections,
+        # Step 3: Local EasyOCR fallback
+        eo = easyocr_extract_text(image_path_or_bytes)
+        if eo.get("ok") and (eo.get("text") or "").strip():
+            full_text = eo.get("text", "")
+            merged = [{"box": (0,0,0,0), "text": line, "conf": 0.7} for line in full_text.splitlines() if line.strip()]
+            sections = split_to_sections(merged)
+            structured = {}
+            if ENHANCED_PARSER and _enhanced_parse:
+                try:
+                    structured = _enhanced_parse(full_text)
+                except Exception:
+                    pass
+            elif not ENHANCED_PARSER and '_basic_parse' in globals() and _basic_parse:
+                try:
+                    structured = _basic_parse(full_text)
+                except Exception:
+                    pass
+            debug["engines"].append("easyocr")
+            debug["pipeline"].append("EasyOCR")
+            confidence = "medium" if len(full_text.strip()) > 10 else "low"
+            return {
+                "text": full_text,
+                "structured": structured if structured else sections,
+                "method": "EasyOCR",
+                "confidence": confidence,
+                "raw_ocr": merged,
+                "sections": sections,
+                "debug": debug,
+            }
+        else:
+            if not eo.get("ok"):
+                debug["notes"].append(f"EasyOCR fallback error: {eo.get('error')}")
+            debug["pipeline"].append("EasyOCR:fail")
+
+        # All tiers failed; return graceful, minimal payload
+        return {
+            "text": "",
+            "structured": {},
+            "method": "none",
+            "confidence": "low",
+            "raw_ocr": [],
+            "sections": {"ingredients": "", "nutrition": "", "claims": "", "other": ""},
             "debug": debug,
         }
-        return compatibility_payload
     except Exception as e:
         return {"error": str(e), "trace": traceback.format_exc()}
 

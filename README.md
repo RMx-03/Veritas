@@ -6,7 +6,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 
 ## Features
 
-- ** OCR Label Reading** - Extract text from food label images using Hugging Face TrOCR or Donut (toggle)
+- ** Multi-tier OCR & Lookup** - OpenFoodFacts lookup → HF Inference OCR (DocTR/TroCR) → EasyOCR fallback
 - ** AI Analysis** - Verify health claims using OpenRouter (DeepSeek R1)
 - ** Nutrition Insights** - Comprehensive nutritional breakdown with charts
 - ** Ingredient Warnings** - Identify harmful ingredients and allergens
@@ -23,7 +23,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 
 **Backend:**
 - FastAPI (Python)
-- Hugging Face Inference API (TrOCR/Donut) for OCR
+- OpenFoodFacts API first, then Hugging Face Inference OCR (DocTR/TroCR), with EasyOCR fallback
 - OpenRouter (DeepSeek R1) for AI reasoning
 - Optional DocVQA (LayoutLM family) for layout-aware refinement
 
@@ -37,7 +37,7 @@ Veritas analyzes food labels through image upload, providing instant AI-powered 
 
 1. **Node.js** (v18+)
 2. **Python** (3.8+)
-3. **Hugging Face** account and API key (for OCR via HF Inference)
+3. (Optional) **Hugging Face** account and API key (for OCR via HF Inference)
 4. API keys for:
    - OpenRouter (uses your chosen model via OpenRouter)
    - HuggingFace (free tier: 30k tokens/month)
@@ -78,18 +78,20 @@ cp ../.env.example .env
 2. Run the SQL schema from `db/schema.sql` in Supabase SQL Editor
 3. Update `.env` files with Supabase credentials
 
-### 5. Configure OCR Engine (HF Inference)
+### 5. Configure Multi-tier OCR Pipeline
 
 ```env
 # backend/.env
-HUGGINGFACE_API_KEY=your_hf_token
-OCR_ENGINE=trocr   # options: trocr | donut
+# 1) OpenFoodFacts lookup (no API key required)
+OPENFOODFACTS_BASE_URL=https://world.openfoodfacts.org/api/v0/product/
 
-# Optional overrides
-HF_TROCR_MODEL=microsoft/trocr-large-printed
-HF_DONUT_MODEL=naver-clova-ix/donut-base-finetuned-docvqa
-USE_LAYOUT_REFINER=false
-HF_DOCVQA_MODEL=impira/layoutlm-document-qa
+# 2) Hugging Face Inference OCR (optional)
+HUGGINGFACE_API_KEY=your_hf_token
+DOCTR_API_MODEL=microsoft/trocr-small-printed
+
+# 3) Local fallback
+WARMUP_ON_STARTUP=true
+WARMUP_ENGINES=easyocr
 ```
 
 ### 6. Run Development Servers
